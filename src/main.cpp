@@ -1,12 +1,13 @@
 #include "main.h"
+#include "screen.h"
 #include "vars.h"
-#include "lemlib/api.hpp"
-#include "lemlib/chassis/chassis.hpp"
 
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
 pros::MotorGroup leftMG({0,0,0}, pros::MotorGearset::red);
 pros::MotorGroup rightMG({0,0,0}, pros::MotorGearset::red);
+
+pros::Motor intake(0, pros::MotorGears::blue);
 
 pros::Rotation horizontalSensor(0); // Horizontal Sensor
 pros::Rotation verticalSensor(0); // Vertical Sensor
@@ -21,6 +22,8 @@ lemlib::Drivetrain drivetrain(
 );
 
 pros::IMU imu(0);
+
+lemlib::Pose pose(0,0,0);
 
 // lateral PID controller
 lemlib::ControllerSettings lateral_controller(
@@ -92,6 +95,11 @@ lemlib::Chassis chassis(
 	);
 
 void initialize() {
+	screen::main();
+}
+
+void global_variable(){
+	pose = chassis.getPose();
 }
 
 void disabled() {}
@@ -103,6 +111,8 @@ void autonomous() {
 }
 
 void opcontrol() {
+	intake.move_voltage(0);
+
     while (true) {
         int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
         int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
@@ -110,4 +120,10 @@ void opcontrol() {
         // chassis.curvature(leftY, rightX);
         pros::delay(25);
     }
+
+	if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
+		intake.move_voltage(12000);
+	} else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)){
+		intake.move_voltage(-12000);
+	}
 }
