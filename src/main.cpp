@@ -1,11 +1,10 @@
 #include "main.h"
 #include "screen.h"
-#include "vars.h"
 
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
-pros::MotorGroup leftMG({0,0,0}, pros::MotorGearset::red);
-pros::MotorGroup rightMG({0,0,0}, pros::MotorGearset::red);
+pros::MotorGroup leftMG({8,9,10}, pros::MotorGearset::red);
+pros::MotorGroup rightMG({18,19,20}, pros::MotorGearset::red);
 
 pros::Motor intake(0, pros::MotorGears::blue);
 
@@ -17,7 +16,7 @@ lemlib::Drivetrain drivetrain(
  	&rightMG,
 	0, // Track width
 	lemlib::Omniwheel::NEW_325,	// Wheel type
-	0, // RPM
+	1200, // RPM
 	2 // Horizontal Drift
 );
 
@@ -92,7 +91,7 @@ lemlib::Chassis chassis(
 	sensors, // odometry sensors
 	&throttleCurve,
 	&steerCurve
-	);
+);
 
 void initialize() {
 	screen::main();
