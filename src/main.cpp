@@ -1,10 +1,11 @@
 #include "main.h"
+#include "pros/motors.h"
 #include "screen.h"
-
+#include "util.h"
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
-pros::MotorGroup leftMG({8,9,10}, pros::MotorGearset::red);
-pros::MotorGroup rightMG({18,19,20}, pros::MotorGearset::red);
+pros::MotorGroup leftMG({20,19,10}, pros::MotorGearset::red);
+pros::MotorGroup rightMG({-11,-12,-1}, pros::MotorGearset::red);
 
 pros::Motor intake(0, pros::MotorGears::blue);
 
@@ -95,6 +96,8 @@ lemlib::Chassis chassis(
 
 void initialize() {
 	screen::main();
+	leftMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
+	rightMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
 }
 
 void global_variable(){
@@ -109,14 +112,43 @@ void autonomous() {
 	
 }
 
+std::vector<float> arcadeControl(double leftInput, double rightInput) {
+	// output voltages of left and right in vector
+	std::vector<float> voltages = {0, 0};
+
+	rightInput = util::clamp(rightInput, -0.5, 0.5);
+
+	float max = std::max(fabs(leftInput), fabs(rightInput));
+	float difference = leftInput - rightInput;
+	float total = leftInput + rightInput;
+
+	if(leftInput >= 0) {
+		if(rightInput >= 0) {
+			voltages = std::vector<float> {max, difference};
+		} else {
+			voltages = std::vector<float> {total, max};
+		}
+	} else {
+		if(rightInput >= 0) {
+			voltages = std::vector<float> {total, -max};
+		} else {
+			voltages = std::vector<float> {-max, difference};
+		}
+	}
+
+	return voltages;
+}
+
 void opcontrol() {
 	intake.move_voltage(0);
 
     while (true) {
-        int leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-        int rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
-
-        // chassis.curvature(leftY, rightX);
+        float leftY = ((float)controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y) / 127);
+        float rightX = ((float)controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X) / 127);
+		leftMG.move_voltage((leftY - rightX)*12000);
+		rightMG.move_voltage((leftY + rightX)*12000);
+		// leftMG.move_voltage(arcadeControl(rightX, leftY)[0] * 12000);
+		// rightMG.move_voltage(arcadeControl(leftY, rightX)[1] * 12000);
         pros::delay(25);
     }
 
