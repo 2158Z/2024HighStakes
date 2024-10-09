@@ -4,8 +4,8 @@
 #include "util.h"
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 
-pros::MotorGroup leftMG({20,19,10}, pros::MotorGearset::red);
-pros::MotorGroup rightMG({-11,-12,-1}, pros::MotorGearset::red);
+pros::MotorGroup leftMG({20,19,10}, pros::MotorGearset::blue);
+pros::MotorGroup rightMG({-11,-12,-1}, pros::MotorGearset::blue);
 
 pros::Motor intake(0, pros::MotorGears::blue);
 
@@ -15,7 +15,7 @@ pros::Rotation verticalSensor(0); // Vertical Sensor
 lemlib::Drivetrain drivetrain(
 	&leftMG,
  	&rightMG,
-	0, // Track width
+	30, // Track width
 	lemlib::Omniwheel::NEW_325,	// Wheel type
 	1200, // RPM
 	2 // Horizontal Drift
@@ -51,12 +51,6 @@ lemlib::ControllerSettings angular_controller(
 	0 // maximum acceleration (slew)
 );
 
-lemlib::TrackingWheel horizontalTrackingWheel( // Horizontal Tracking Wheel
-	&horizontalSensor, 
-	lemlib::Omniwheel::NEW_275, 
-	0 // Offset
-	);
-
 lemlib::TrackingWheel verticalTrackingWheel( // Vertical Tracking Wheel
 	&verticalSensor, 
 	lemlib::Omniwheel::NEW_275, 
@@ -66,7 +60,7 @@ lemlib::TrackingWheel verticalTrackingWheel( // Vertical Tracking Wheel
 lemlib::OdomSensors sensors(
 	&verticalTrackingWheel, // vertical tracking wheel 1, set to null
 	nullptr, // vertical tracking wheel 2, set to nullptr as we are using IMEs
-	&horizontalTrackingWheel, // horizontal tracking wheel 1
+	nullptr, // horizontal tracking wheel 1
 	nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
 	&imu // inertial sensor
 	);
@@ -89,15 +83,15 @@ lemlib::Chassis chassis(
 	drivetrain, // drivetrain settings
 	lateral_controller, // lateral PID settings
 	angular_controller, // angular PID settings
-	sensors, // odometry sensors
-	&throttleCurve,
-	&steerCurve
+	sensors // odometry sensors
+	// &throttleCurve,
+	// &steerCurve
 );
 
 void initialize() {
 	screen::main();
-	leftMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
-	rightMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
+	leftMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
+	rightMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
 }
 
 void global_variable(){
@@ -139,22 +133,31 @@ std::vector<float> arcadeControl(double leftInput, double rightInput) {
 	return voltages;
 }
 
+float easeInOutExpo(float x) {
+	return x == 0 // If x is 0
+	? 0
+	: x == 1 // If x is 1
+	? 1
+	: x < 0.5 ? pow(2, 20 * x - 10) / 2
+	: (2 - pow(2, -20 * x + 10)) / 2;
+}
+
 void opcontrol() {
 	intake.move_voltage(0);
 
     while (true) {
-        float leftY = ((float)controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y) / 127);
-        float rightX = ((float)controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X) / 127);
-		leftMG.move_voltage((leftY - rightX)*12000);
-		rightMG.move_voltage((leftY + rightX)*12000);
-		// leftMG.move_voltage(arcadeControl(rightX, leftY)[0] * 12000);
-		// rightMG.move_voltage(arcadeControl(leftY, rightX)[1] * 12000);
-        pros::delay(25);
-    }
+        // get left y and right x positions
+        float leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)/127;
+        float rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X)/127;
 
-	if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
-		intake.move_voltage(12000);
-	} else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)){
-		intake.move_voltage(-12000);
+        // move the robot
+        chassis.arcade(easeInOutExpo(leftY) * util::sgn(leftY) * 127, easeInOutExpo(rightX) * util::sgn(rightX) * 127, false, 0.75);
+	
+		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
+			intake.move_voltage(12000);
+		} else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)){
+			intake.move_voltage(-12000);
+		}
+		pros::delay(25);
 	}
 }
