@@ -53,10 +53,13 @@ namespace screen {
 
     lv_coord_t tab = 60;
 
-    const char * auton_map[] = {"Auton1", "Auton2", "Auton3", NULL};
+    const char * auton_map[] = {"Preload", "Auton2", "Auton3", NULL};
 
     static void auton_handler(lv_event_t * e){
         autonID = lv_btnmatrix_get_selected_btn(lv_event_get_target(e));
+        if (autonID == 65535){
+            autonID = 0;
+        }
     }
 
     static void auton_run_handler(lv_event_t * e){
@@ -64,6 +67,7 @@ namespace screen {
     }
 
     void labelUpdate(){
+        autonID = 0.0;
         while(true){
             lv_label_set_text_fmt(temp_label, "Motor Temps: %d, %d, %d, %d, %d, %d", m1, m2, m3, m4, m5, m6);
             lv_label_set_text(odom_label, odom);
@@ -82,8 +86,6 @@ namespace screen {
             a_p = lv_spinbox_get_value(ap_spinbox);
             a_i = lv_spinbox_get_value(ai_spinbox);
             a_d = lv_spinbox_get_value(ad_spinbox);
-
-            printf("%f, %f, %f, %f, %f, %f, \n", l_p / 1000, l_i / 1000, l_d / 1000, a_p / 1000, a_i / 1000, a_d / 1000);
             pros::Task::delay(50);
         }
     }
@@ -183,10 +185,10 @@ namespace screen {
         lv_obj_align(auton_btnm_label, LV_ALIGN_BOTTOM_MID, 0, 0);
         lv_label_set_text(auton_btnm_label, "");
 
-        lv_obj_t * image_obj = lv_img_create(info_tab);
-        lv_obj_set_size(image_obj, 120, 120); // {250,207 z2} {120,120 z2p}
-        lv_obj_align(image_obj, LV_ALIGN_CENTER, 0, 0);
-        lv_img_set_src(image_obj, &z2);
+        // lv_obj_t * image_obj = lv_img_create(info_tab);
+        // lv_obj_set_size(image_obj, 120, 120); // {250,207 z2} {120,120 z2p}
+        // lv_obj_align(image_obj, LV_ALIGN_CENTER, 0, 0);
+        // lv_img_set_src(image_obj, &z2);
 
         odom_label = lv_label_create(info_tab);
         lv_obj_add_style(odom_label, &label_theme, 0);

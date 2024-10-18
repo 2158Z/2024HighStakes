@@ -3,11 +3,18 @@
 #include "screen.h"
 #include "util.h"
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
+pros::MotorGroup leftMG({-2,-7,-13}, pros::MotorGearset::blue);
+pros::MotorGroup rightMG({5,8,12}, pros::MotorGearset::blue);
 
-pros::MotorGroup leftMG({20,19,10}, pros::MotorGearset::blue);
-pros::MotorGroup rightMG({-11,-12,-1}, pros::MotorGearset::blue);
+pros::Motor intake(4, pros::MotorGears::blue);
+pros::Motor rake(10, pros::MotorGearset::blue);
+pros::Motor conveyor(9, pros::MotorGearset::blue);
 
-pros::Motor intake(0, pros::MotorGears::blue);
+pros::adi::DigitalOut clampOut('A');
+pros::adi::DigitalOut clampIn('B');
+
+bool conveyorToggle = false;
+bool clampToggle = false;
 
 pros::Rotation horizontalSensor(0); // Horizontal Sensor
 pros::Rotation verticalSensor(0); // Vertical Sensor
@@ -17,11 +24,11 @@ lemlib::Drivetrain drivetrain(
  	&rightMG,
 	30, // Track width
 	lemlib::Omniwheel::NEW_325,	// Wheel type
-	1200, // RPM
-	2 // Horizontal Drift
+	450, // RPM
+	0 // Horizontal Drift
 );
 
-pros::IMU imu(0);
+pros::IMU imu(16);
 
 lemlib::Pose pose(0,0,0);
 
@@ -51,15 +58,23 @@ lemlib::ControllerSettings angular_controller(
 	0 // maximum acceleration (slew)
 );
 
-lemlib::TrackingWheel verticalTrackingWheel( // Vertical Tracking Wheel
-	&verticalSensor, 
-	lemlib::Omniwheel::NEW_275, 
-	0 // Offset
+lemlib::TrackingWheel leftMotorTracking( 
+	&leftMG,
+	lemlib::Omniwheel::NEW_275,
+	12.5, 
+	450 // Offset
+	);
+
+lemlib::TrackingWheel rightMotorTracking( 
+	&rightMG,
+	lemlib::Omniwheel::NEW_275,
+	12.5, 
+	450 
 	);
 
 lemlib::OdomSensors sensors(
-	&verticalTrackingWheel, // vertical tracking wheel 1, set to null
-	nullptr, // vertical tracking wheel 2, set to nullptr as we are using IMEs
+	&leftMotorTracking, // vertical tracking wheel 1, set to null
+	nullptr,
 	nullptr, // horizontal tracking wheel 1
 	nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
 	&imu // inertial sensor
@@ -90,6 +105,7 @@ lemlib::Chassis chassis(
 
 void initialize() {
 	screen::main();
+	chassis.calibrate();
 	leftMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
 	rightMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
 }
@@ -101,9 +117,19 @@ void global_variable(){
 void disabled() {}
 
 void competition_initialize() {}
-
 void autonomous() {
-	
+	switch(screen::autonID){
+		case 0: 
+			 // set position to x:0, y:0, heading:0
+			chassis.setPose(0, 0, 0);
+			pose = chassis.getPose();
+			printf("X: %f, Y: %f, Theta: %f \n", pose.x, pose.y, pose.theta);
+			// turn to face heading 90 with a very long timeout
+			// chassis.turnToHeading(90, 100000);
+			return;
+		case 1: return;
+		case 2: return;
+	}
 }
 
 std::vector<float> arcadeControl(double leftInput, double rightInput) {
@@ -134,6 +160,7 @@ std::vector<float> arcadeControl(double leftInput, double rightInput) {
 }
 
 float easeInOutExpo(float x) {
+	x = abs(x);
 	return x == 0 // If x is 0
 	? 0
 	: x == 1 // If x is 1
@@ -143,21 +170,49 @@ float easeInOutExpo(float x) {
 }
 
 void opcontrol() {
-	intake.move_voltage(0);
-
     while (true) {
-        // get left y and right x positions
-        float leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)/127;
-        float rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X)/127;
+		printf("X: %f, Y: %f, Theta: %f \n", pose.x, pose.y, pose.theta);
+		intake.move_voltage(0);
+		rake.move_voltage(0);
+        // // get left y and right x positions
+        // float leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)/127;
+        // float rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X)/127;
 
-        // move the robot
-        chassis.arcade(easeInOutExpo(leftY) * util::sgn(leftY) * 127, easeInOutExpo(rightX) * util::sgn(rightX) * 127, false, 0.75);
+		float leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
+        float rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+
+        // // move the robot
+        // chassis.arcade(easeInOutExpo(leftY) * util::sgn(leftY) * 127, easeInOutExpo(rightX) * util::sgn(rightX) * 127, false, 0.75);
+		chassis.arcade(leftY, rightX);
 	
 		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
 			intake.move_voltage(12000);
 		} else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)){
 			intake.move_voltage(-12000);
 		}
+
+		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)){
+			rake.move_voltage(12000);
+		} else if (rake.get_position() >= 10){
+			rake.move_voltage(-3000);
+		}
+
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)){
+			clampToggle = !clampToggle;
+			clampIn.set_value(clampToggle);
+			clampOut.set_value(!clampToggle);
+		}
+
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y)){
+			conveyorToggle = !conveyorToggle;
+		}
+
+		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT)){
+			autonomous();
+		}
+
+		conveyor.move_voltage(-8000 * conveyorToggle);
+
 		pros::delay(25);
 	}
 }
