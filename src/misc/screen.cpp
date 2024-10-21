@@ -14,7 +14,7 @@
 LV_IMG_DECLARE(z2);
 LV_IMG_DECLARE(z2p);
 
-namespace screen {
+namespace LVGL_screen {
     double l_p = 1;
     double l_i = 2;
     double l_d = 3;
@@ -63,7 +63,7 @@ namespace screen {
     }
 
     static void auton_run_handler(lv_event_t * e){
-        autonomous();
+        // autonomous();
     }
 
     void labelUpdate(){

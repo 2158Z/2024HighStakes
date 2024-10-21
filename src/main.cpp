@@ -1,7 +1,8 @@
 #include "main.h"
 #include "pros/motors.h"
-#include "screen.h"
+#include "misc/screen.h"
 #include "util.h"
+#include "PID.h"
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 pros::MotorGroup leftMG({-2,-7,-13}, pros::MotorGearset::blue);
 pros::MotorGroup rightMG({5,8,12}, pros::MotorGearset::blue);
@@ -27,6 +28,9 @@ lemlib::Drivetrain drivetrain(
 	450, // RPM
 	0 // Horizontal Drift
 );
+
+std::vector<float> driveConstants = {12000, 0.17, 0.0005, 1, 2, 75, 0.25, 1000}; //1.25
+std::vector<float> turnConstants = {12000, 0.015, 0.00, 0.103, 2, 75, 0.75, 1000}; //.0075
 
 pros::IMU imu(16);
 
@@ -103,8 +107,96 @@ lemlib::Chassis chassis(
 	// &steerCurve
 );
 
+void driveVoltage(float leftVoltage, float rightVoltage){
+	leftMG.move_voltage(leftVoltage);
+	rightMG.move_voltage(rightVoltage);
+}
+
+void driveDistance(float distance, float timeout, std::vector<float> dConstants = driveConstants) {
+	PID leftPID(distance, dConstants[1], dConstants[2], dConstants[3], dConstants[4], dConstants[5], dConstants[6], timeout);
+	PID rightPID(distance, dConstants[1], dConstants[2], dConstants[3], dConstants[4], dConstants[5], dConstants[6], timeout);
+
+	leftMG.tare_position();
+	rightMG.tare_position();
+	int counter = 0;
+	// float lastRightOutput = 0;
+	// float lastLeftOutput = 0;
+	// float lastRightAddition = 0;
+	// float lastLeftAddition = 0;
+
+	while(!leftPID.is_settled() || !rightPID.is_settled()) {
+		float leftTraveled = leftMG.get_position() / 360 * M_PI * 3.25 * .75; 
+		float rightTraveled = rightMG.get_position() / 360 * M_PI * 3.25 * .75;
+		
+		float rightError = distance - rightTraveled;
+		float leftError = distance - leftTraveled;
+		
+
+		float leftOutput = leftPID.compute(leftError) * 10000;
+		float rightOutput = rightPID.compute(rightError) * 10000;
+
+		leftOutput = util::clamp(leftOutput, -driveConstants[0], driveConstants[0]);
+		rightOutput = util::clamp(rightOutput, -driveConstants[0], driveConstants[0]);
+
+		// if(rightOutput > (lastRightOutput + lastRightAddition)) {
+		//     rightOutput = lastRightOutput + lastRightAddition;
+		//     lastRightAddition += 100;
+		// }
+		// if(leftOutput > lastLeftOutput + lastLeftAddition) {
+		//     leftOutput = lastLeftOutput + lastLeftAddition;
+		//     lastLeftAddition += 100;
+		// }
+
+		driveVoltage(leftOutput, rightOutput); 
+
+		// lastRightOutput = rightOutput;
+		// lastLeftOutput = leftOutput;
+
+		printf("%f %f %f %f \n", leftError, rightError, leftOutput, rightOutput);
+		counter++;
+		delay(10);
+	}
+	driveVoltage(0,0);
+	printf("%s", "settled");
+}
+
+void turnAngle(float angle, std::vector<float> tConstants = turnConstants) {        // relative
+	PID turnPID(angle, tConstants[1], tConstants[2], tConstants[3], tConstants[4], tConstants[5], tConstants[6], tConstants[7]);
+	float relativeHeading = 0;
+	float absHeading = imu.get_heading();
+	float previousAbsHeading = absHeading;
+	while (!turnPID.is_settled()) {
+		float deltaAngle = 0;
+		absHeading = imu.get_heading();
+
+		deltaAngle = absHeading - previousAbsHeading;
+		if(deltaAngle < -180 || deltaAngle > 180) { //if it crosses from 0 to 360 or vice versa
+			deltaAngle = -360 + absHeading + previousAbsHeading;
+		}
+
+		relativeHeading += deltaAngle;
+		float error = angle - relativeHeading;
+		previousAbsHeading = absHeading;
+
+		float output = turnPID.compute(error) * 10000;
+
+
+		output = util::clamp(output, -tConstants[0], tConstants[0]);
+		driveVoltage(output, -output);
+		printf("%f %f\n", error, output);
+		delay(10);
+	}
+	printf("%s", "settled");
+}
+
+void MogoClamp(){
+	clampToggle = !clampToggle;
+	clampIn.set_value(clampToggle);
+	clampOut.set_value(!clampToggle);
+}
+
 void initialize() {
-	screen::main();
+	LVGL_screen::main();
 	chassis.calibrate();
 	leftMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
 	rightMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
@@ -118,18 +210,22 @@ void disabled() {}
 
 void competition_initialize() {}
 void autonomous() {
-	switch(screen::autonID){
-		case 0: 
-			 // set position to x:0, y:0, heading:0
-			chassis.setPose(0, 0, 0);
-			pose = chassis.getPose();
-			printf("X: %f, Y: %f, Theta: %f \n", pose.x, pose.y, pose.theta);
-			// turn to face heading 90 with a very long timeout
-			// chassis.turnToHeading(90, 100000);
-			return;
-		case 1: return;
-		case 2: return;
-	}
+	rake.move_voltage(-3000);
+	MogoClamp();
+	pros::delay(200);
+	driveDistance(-40, 500);
+	
+	MogoClamp();
+	conveyor.move_voltage(-8000);
+	turnAngle(90);
+	intake.move_voltage(12000);
+	driveDistance(30, 500);
+	
+	// leftMG.move_voltage(12000);
+	// rightMG.move_voltage(12000);
+	// pros::delay(250);
+	// leftMG.move_voltage(0);
+	// rightMG.move_voltage(0);
 }
 
 std::vector<float> arcadeControl(double leftInput, double rightInput) {
@@ -171,6 +267,7 @@ float easeInOutExpo(float x) {
 
 void opcontrol() {
     while (true) {
+		pose = chassis.getPose();
 		printf("X: %f, Y: %f, Theta: %f \n", pose.x, pose.y, pose.theta);
 		intake.move_voltage(0);
 		rake.move_voltage(0);
@@ -198,17 +295,19 @@ void opcontrol() {
 		}
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)){
-			clampToggle = !clampToggle;
-			clampIn.set_value(clampToggle);
-			clampOut.set_value(!clampToggle);
+			MogoClamp();
 		}
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y)){
-			conveyorToggle = !conveyorToggle;
+			if (conveyorToggle == -1 || conveyorToggle == 1){
+				conveyorToggle = 0;
+			} else {
+				conveyorToggle = 1;
+			}
 		}
 
-		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_LEFT)){
-			autonomous();
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)){
+			conveyorToggle = -1;
 		}
 
 		conveyor.move_voltage(-8000 * conveyorToggle);
