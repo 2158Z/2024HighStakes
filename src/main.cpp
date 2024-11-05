@@ -1,18 +1,20 @@
+#include "lemlib/api.hpp" // IWYU pragma: keep
 #include "main.h"
 #include "pros/motors.h"
 #include "misc/screen.h"
 #include "util.h"
 #include "PID.h"
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
-pros::MotorGroup leftMG({-2,-7,-13}, pros::MotorGearset::blue);
-pros::MotorGroup rightMG({5,8,12}, pros::MotorGearset::blue);
+pros::MotorGroup leftMG({-6,-8,-10}, pros::MotorGearset::blue);
+pros::MotorGroup rightMG({2,3,4}, pros::MotorGearset::blue);
 
-pros::Motor intake(4, pros::MotorGears::blue);
-pros::Motor rake(10, pros::MotorGearset::blue);
-pros::Motor conveyor(9, pros::MotorGearset::blue);
+pros::Motor intake(16, pros::MotorGears::blue);
+pros::Motor conveyor(1, pros::MotorGearset::blue);
 
-pros::adi::DigitalOut clampOut('A');
-pros::adi::DigitalOut clampIn('B');
+pros::adi::DigitalOut clamp('C');
+pros::adi::DigitalOut doinker('A');
+pros::adi::DigitalOut climbUp('B');
+pros::adi::DigitalOut climbDown('D');
 
 bool conveyorToggle = false;
 bool clampToggle = false;
@@ -23,16 +25,16 @@ pros::Rotation verticalSensor(0); // Vertical Sensor
 lemlib::Drivetrain drivetrain(
 	&leftMG,
  	&rightMG,
-	30, // Track width
-	lemlib::Omniwheel::NEW_325,	// Wheel type
+	12.5, // Track width
+	lemlib::Omniwheel::NEW_275,	// Wheel type
 	450, // RPM
-	0 // Horizontal Drift
+	2 // Horizontal Drift
 );
 
 std::vector<float> driveConstants = {12000, 0.17, 0.0005, 1, 2, 75, 0.25, 1000}; //1.25
 std::vector<float> turnConstants = {12000, 0.015, 0.00, 0.103, 2, 75, 0.75, 1000}; //.0075
 
-pros::IMU imu(16);
+pros::IMU imu(15);
 
 lemlib::Pose pose(0,0,0);
 
@@ -65,20 +67,20 @@ lemlib::ControllerSettings angular_controller(
 lemlib::TrackingWheel leftMotorTracking( 
 	&leftMG,
 	lemlib::Omniwheel::NEW_275,
-	12.5, 
+	6.25, 
 	450 // Offset
 	);
 
 lemlib::TrackingWheel rightMotorTracking( 
 	&rightMG,
 	lemlib::Omniwheel::NEW_275,
-	12.5, 
+	6.25, 
 	450 
 	);
 
 lemlib::OdomSensors sensors(
 	&leftMotorTracking, // vertical tracking wheel 1, set to null
-	nullptr,
+	&rightMotorTracking,
 	nullptr, // horizontal tracking wheel 1
 	nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
 	&imu // inertial sensor
@@ -189,12 +191,6 @@ void turnAngle(float angle, std::vector<float> tConstants = turnConstants) {    
 	printf("%s", "settled");
 }
 
-void MogoClamp(){
-	clampToggle = !clampToggle;
-	clampIn.set_value(clampToggle);
-	clampOut.set_value(!clampToggle);
-}
-
 void initialize() {
 	LVGL_screen::main();
 	chassis.calibrate();
@@ -210,12 +206,10 @@ void disabled() {}
 
 void competition_initialize() {}
 void autonomous() {
-	rake.move_voltage(-3000);
-	MogoClamp();
 	pros::delay(200);
 	driveDistance(-40, 500);
 	
-	MogoClamp();
+	clamp.set_value(!clampToggle);
 	conveyor.move_voltage(-8000);
 	turnAngle(90);
 	intake.move_voltage(12000);
@@ -270,7 +264,6 @@ void opcontrol() {
 		pose = chassis.getPose();
 		printf("X: %f, Y: %f, Theta: %f \n", pose.x, pose.y, pose.theta);
 		intake.move_voltage(0);
-		rake.move_voltage(0);
         // // get left y and right x positions
         // float leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)/127;
         // float rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X)/127;
@@ -288,14 +281,8 @@ void opcontrol() {
 			intake.move_voltage(-12000);
 		}
 
-		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)){
-			rake.move_voltage(12000);
-		} else if (rake.get_position() >= 10){
-			rake.move_voltage(-3000);
-		}
-
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)){
-			MogoClamp();
+			clamp.set_value(!clampToggle);
 		}
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y)){
