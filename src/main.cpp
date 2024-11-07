@@ -11,13 +11,17 @@ pros::MotorGroup rightMG({2,3,4}, pros::MotorGearset::blue);
 pros::Motor intake(16, pros::MotorGears::blue);
 pros::Motor conveyor(1, pros::MotorGearset::blue);
 
-pros::adi::DigitalOut clamp('C');
-pros::adi::DigitalOut doinker('A');
+pros::adi::DigitalOut clamp('D');
+pros::adi::DigitalOut doinker('C');
 pros::adi::DigitalOut climbUp('B');
-pros::adi::DigitalOut climbDown('D');
+pros::adi::DigitalOut climbDown('A');
 
-bool conveyorToggle = false;
+int conveyorToggle = false;
 bool clampToggle = false;
+int conveyorDirection = 1;
+bool hangUp = false;
+bool hangDown = false;
+bool doinkerToggle = false;
 
 pros::Rotation horizontalSensor(0); // Horizontal Sensor
 pros::Rotation verticalSensor(0); // Vertical Sensor
@@ -283,21 +287,49 @@ void opcontrol() {
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT)){
 			clamp.set_value(!clampToggle);
+			clampToggle = !clampToggle;
 		}
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y)){
-			if (conveyorToggle == -1 || conveyorToggle == 1){
+			if (conveyorToggle == 1){
 				conveyorToggle = 0;
 			} else {
 				conveyorToggle = 1;
 			}
 		}
 
-		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)){
-			conveyorToggle = -1;
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)){
+			if (conveyorDirection == 1){
+				conveyorDirection = -1;
+			} else {
+				conveyorDirection = 1;
+			}
 		}
 
-		conveyor.move_voltage(-8000 * conveyorToggle);
+		if(controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_R2)){
+			hangUp = !hangUp;
+		}
+
+		if(controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L2)){
+			doinkerToggle = !doinkerToggle;
+			doinker.set_value(doinkerToggle);
+		}
+
+		if(controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)){
+			if (hangDown){
+				hangDown = !hangDown;
+			} else {
+				if (hangUp){
+					hangUp = false;
+				}
+				hangDown = true;
+			}
+		}
+
+		climbUp.set_value(hangUp);
+		climbDown.set_value(hangDown);
+
+		conveyor.move_voltage(-8000 * conveyorToggle * conveyorDirection);
 
 		pros::delay(25);
 	}
