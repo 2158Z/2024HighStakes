@@ -11,6 +11,8 @@ pros::MotorGroup rightMG({2,3,4}, pros::MotorGearset::blue);
 pros::Motor intake(16, pros::MotorGears::blue);
 pros::Motor conveyor(1, pros::MotorGearset::blue);
 
+lemlib::Pose pose = lemlib::Pose(0,0);
+
 pros::adi::DigitalOut clamp('D');
 pros::adi::DigitalOut doinker('C');
 pros::adi::DigitalOut climbUp('B');
@@ -23,8 +25,7 @@ bool hangUp = false;
 bool hangDown = false;
 bool doinkerToggle = false;
 
-pros::Rotation horizontalSensor(0); // Horizontal Sensor
-pros::Rotation verticalSensor(0); // Vertical Sensor
+pros::Rotation verticalSensor(15); // Vertical Sensor
 
 lemlib::Drivetrain drivetrain(
 	&leftMG,
@@ -35,12 +36,10 @@ lemlib::Drivetrain drivetrain(
 	2 // Horizontal Drift
 );
 
-std::vector<float> driveConstants = {12000, 0.17, 0.0005, 1, 2, 75, 0.25, 1000}; //1.25
+std::vector<float> driveConstants = {6000, 0.17, 0.0005, 1, 2, 75, 0.25, 1000}; //1.25
 std::vector<float> turnConstants = {12000, 0.015, 0.00, 0.103, 2, 75, 0.75, 1000}; //.0075
 
-pros::IMU imu(15);
-
-lemlib::Pose pose(0,0,0);
+pros::IMU imu(19);
 
 // lateral PID controller
 lemlib::ControllerSettings lateral_controller(
@@ -52,7 +51,7 @@ lemlib::ControllerSettings lateral_controller(
 	100, // small error range timeout, in milliseconds
 	3, // large error range, in inches
 	500, // large error range timeout, in milliseconds
-	20 // maximum acceleration (slew)
+	0 // maximum acceleration (slew)
 );
 
 // angular PID controller
@@ -68,23 +67,15 @@ lemlib::ControllerSettings angular_controller(
 	0 // maximum acceleration (slew)
 );
 
-lemlib::TrackingWheel leftMotorTracking( 
-	&leftMG,
+lemlib::TrackingWheel verticalTrackingWheel( 
+	&verticalSensor,
 	lemlib::Omniwheel::NEW_275,
-	6.25, 
-	450 // Offset
-	);
-
-lemlib::TrackingWheel rightMotorTracking( 
-	&rightMG,
-	lemlib::Omniwheel::NEW_275,
-	6.25, 
-	450 
+	0 // Offset
 	);
 
 lemlib::OdomSensors sensors(
-	&leftMotorTracking, // vertical tracking wheel 1, set to null
-	&rightMotorTracking,
+	&verticalTrackingWheel, // vertical tracking wheel 1, set to null
+	nullptr,
 	nullptr, // horizontal tracking wheel 1
 	nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
 	&imu // inertial sensor
@@ -202,26 +193,94 @@ void initialize() {
 	rightMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
 }
 
-void global_variable(){
-	pose = chassis.getPose();
-}
-
 void disabled() {}
 
 void competition_initialize() {}
 void autonomous() {
-	pros::delay(200);
-	driveDistance(-40, 500);
+	switch(LVGL_screen::autonID * LVGL_screen::side){
+		case 1: // Blue Preload
+			pros::delay(200);
+			leftMG.move_voltage(-4000);
+			rightMG.move_voltage(-4000);
+			pros::delay(1500);
+			leftMG.move_voltage(0);
+			rightMG.move_voltage(0);
+			// driveDistance(-16, 5000);
+			
+			clamp.set_value(!clampToggle);
+			pros::delay(250);
+			conveyor.move_voltage(-10000);
+			turnAngle(67.5);  // Left side 112.5, -67.5 Right side
+			intake.move_voltage(-12000);
+			driveDistance(36, 1000);
+			pros::delay(2000);
+			break;
+		case 2: // Blue Corner
+			chassis.setPose(60,-12,90);
+			chassis.moveToPose(20, -24, 60, 2000, {.forwards = false, .minSpeed = 10});
+			clamp.set_value(!clampToggle);
+			conveyor.move_voltage(-8000);
+			intake.move_voltage(12000);
+			chassis.turnToPoint(24, -52, 2000);
+			chassis.moveToPoint(24,-52, 2000);
+			chassis.moveToPoint(60,-60, 2000);
+			intake.move_voltage(0);
+			break;
+		case -1: // Red Preload
+			pros::delay(200);
+			leftMG.move_voltage(-4000);
+			rightMG.move_voltage(-4000);
+			pros::delay(1500);
+			leftMG.move_voltage(0);
+			rightMG.move_voltage(0);
+			// driveDistance(-16, 5000);
+			
+			clamp.set_value(!clampToggle);
+			pros::delay(250);
+			conveyor.move_voltage(-10000);
+			turnAngle(-67.5);  // Left side 112.5, -67.5 Right side
+			intake.move_voltage(-12000);
+			driveDistance(36, 1000);
+			pros::delay(2000);
+			// turnAngle(-110);
+			// intake.move_voltage(12000);
+			// driveDistance(30, 500);
+			break;
+		case -2: // Red corner
+			chassis.setPose(-60,-12,270);
+			chassis.moveToPose(-20, -24, 300, 2000, {.forwards = false, .minSpeed = 10});
+			clamp.set_value(!clampToggle);
+			conveyor.move_voltage(-8000);
+			intake.move_voltage(12000);
+			chassis.turnToPoint(-24, -52, 2000);
+			chassis.moveToPoint(-24,-52, 2000);
+			chassis.moveToPoint(-60,-60, 2000);
+			intake.move_voltage(0);
+			break;
+	}
 	
-	clamp.set_value(!clampToggle);
-	conveyor.move_voltage(-8000);
-	turnAngle(90);
-	intake.move_voltage(12000);
-	driveDistance(30, 500);
+	// pros::delay(200);
+	// leftMG.move_voltage(-4000);
+	// rightMG.move_voltage(-4000);
+	// pros::delay(1500);
+	// leftMG.move_voltage(0);
+	// rightMG.move_voltage(0);
+	// // driveDistance(-16, 5000);
 	
+	// clamp.set_value(!clampToggle);
+	// pros::delay(250);
+	// conveyor.move_voltage(-10000);
+	// turnAngle(-67.5);  // Left side 112.5, -67.5 Right side
+	// intake.move_voltage(-12000);
+	// driveDistance(36, 1000);
+	// turnAngle(-110);
+	// intake.move_voltage(12000);
+	// driveDistance(30, 500);
+	
+
 	// leftMG.move_voltage(12000);
 	// rightMG.move_voltage(12000);
-	// pros::delay(250);
+	// pros::delay(1000);
 	// leftMG.move_voltage(0);
 	// rightMG.move_voltage(0);
 }
@@ -265,9 +324,9 @@ float easeInOutExpo(float x) {
 
 void opcontrol() {
     while (true) {
+		intake.move_voltage(0);
 		pose = chassis.getPose();
 		printf("X: %f, Y: %f, Theta: %f \n", pose.x, pose.y, pose.theta);
-		intake.move_voltage(0);
         // // get left y and right x positions
         // float leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y)/127;
         // float rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X)/127;
@@ -326,10 +385,14 @@ void opcontrol() {
 			}
 		}
 
+		if(controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)){
+			autonomous();
+		}
+
 		climbUp.set_value(hangUp);
 		climbDown.set_value(hangDown);
 
-		conveyor.move_voltage(-8000 * conveyorToggle * conveyorDirection);
+		conveyor.move_voltage(-11000 * conveyorToggle * conveyorDirection);
 
 		pros::delay(25);
 	}
