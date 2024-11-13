@@ -4,7 +4,7 @@
 #include "misc/screen.h"
 #include "util.h"
 #include "PID.h"
-ASSET(skills1_txt);
+ASSET(wp1_txt);
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 pros::MotorGroup leftMG({-6,-8,-10}, pros::MotorGearset::blue);
 pros::MotorGroup rightMG({2,3,4}, pros::MotorGearset::blue);
@@ -14,13 +14,13 @@ pros::Motor conveyor(1, pros::MotorGearset::blue);
 
 lemlib::Pose pose = lemlib::Pose(0,0);
 
-pros::adi::DigitalOut clamp('D');
+pros::adi::DigitalOut clamp('E');
 pros::adi::DigitalOut doinker('C');
 pros::adi::DigitalOut climbUp('B');
 pros::adi::DigitalOut climbDown('A');
 
 int conveyorToggle = false;
-bool clampToggle = false;
+int clampToggle = false;
 int conveyorDirection = 1;
 bool hangUp = false;
 bool hangDown = false;
@@ -194,19 +194,11 @@ void turnAngle(float angle, std::vector<float> tConstants = turnConstants) {    
 	printf("%s", "settled");
 }
 
-void clampTask() {
-	while(true){
-		clamp.set_value(clampToggle);
-		pros::delay(20);
-	}
-}
-
 void initialize() {
 	LVGL_screen::main();
 	chassis.calibrate();
 	leftMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
 	rightMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
-	Task clamp(clampTask, 'clamp');
 }
 
 void disabled() {}
@@ -274,6 +266,29 @@ void autonomous() {
 			chassis.moveToPoint(-60,-60, 2000);
 			intake.move_voltage(0);
 			break;
+		case 0:
+			leftMG.move_voltage(-4000);
+			rightMG.move_voltage(-4000);
+			pros::delay(350);
+			leftMG.move_voltage(0);
+			rightMG.move_voltage(0);
+			clampToggle = true;
+			pros::delay(250);
+			intake.move_voltage(-12000);
+			conveyor.move_voltage(-11000);
+			chassis.setPose(-50, -22.5, 300);
+			chassis.turnToPoint(-21.5, -24.5, 1500);
+			chassis.moveToPoint(-21.5, -24.5, 1500);
+			chassis.turnToPoint(-23.5, -50, 1500);
+			chassis.moveToPoint(-23.5, -50, 1500);
+			chassis.turnToPoint(-50, -60, 1500);
+			chassis.moveToPoint(-50, -60, 1500);
+			chassis.turnToPoint(-45, -45, 1500);
+			chassis.moveToPoint(-45, -45, 1500);
+			chassis.turnToPoint(-60, -48, 1500);
+			chassis.moveToPoint(-60, -48, 1500);
+			break;
+			//skills
 	}
 	// pros::delay(200);
 	// leftMG.move_voltage(-4000);
@@ -401,29 +416,45 @@ void opcontrol() {
 			}
 		}
 
-		if(controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)){
-			leftMG.move_voltage(-4000);
-			rightMG.move_voltage(-4000);
-			pros::delay(350);
-			leftMG.move_voltage(0);
-			rightMG.move_voltage(0);
-			clampToggle = true;
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)){
+			chassis.setPose(50, 16, 90);
+			chassis.moveToPoint(31, 16, 2000, {.forwards=false, .earlyExitRange=2});
+			// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});
+			chassis.moveToPoint(24,24, 2000, {.forwards=false, .maxSpeed=60});
+			while (chassis.isInMotion()) {
+				pros::delay(10); // don't consume all the cpu's resources
+			}
+			clamp.set_value(true);
 			pros::delay(250);
-			intake.move_voltage(-12000);
 			conveyor.move_voltage(-11000);
-			chassis.setPose(-50, -22.5, 300);
-			chassis.turnToPoint(-21.5, -24.5, 1500);
-			chassis.moveToPoint(-21.5, -24.5, 1500);
-			chassis.turnToPoint(-23.5, -50, 1500);
-			chassis.moveToPoint(-23.5, -50, 1500);
-			chassis.turnToPoint(-50, -60, 1500);
-			chassis.moveToPoint(-50, -60, 1500);
-			chassis.turnToPoint(-45, -45, 1500);
-			chassis.moveToPoint(-45, -45, 1500);
-			chassis.turnToPoint(-60, -48, 1500);
-			chassis.moveToPoint(-60, -48, 1500);
-
-		//skills
+			intake.move_voltage(-12000);
+			pros::delay(250);
+			chassis.turnToPoint(24,48,2000);
+			chassis.moveToPoint(20,46, 2000);
+			while (chassis.isInMotion()){
+				conveyor.move_voltage(-11000);
+				intake.move_voltage(-12000);
+				clamp.set_value(true);
+				pros::delay(10);
+			}
+			delay(250);
+			chassis.turnToPoint(8,44,4000, {.minSpeed=80});
+			while (chassis.isInMotion()){
+				conveyor.move_voltage(-11000);
+				intake.move_voltage(-12000);
+				clamp.set_value(true);
+				pros::delay(10);
+			}
+			chassis.moveToPoint(6,44, 2000);
+			while (chassis.isInMotion()){
+				conveyor.move_voltage(-11000);
+				intake.move_voltage(-12000);
+				clamp.set_value(true);
+				pros::delay(10);
+			}
+			conveyor.move_voltage(-11000);
+			intake.move_voltage(-12000);
+			pros::delay(10000);
 		}
 
 		climbUp.set_value(hangUp);
