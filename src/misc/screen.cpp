@@ -41,7 +41,7 @@ namespace LVGL_screen {
 
     lv_coord_t tab = 60;
 
-    const char * auton_map[] = {"Preload", "Corner", "None", NULL};
+    const char * auton_map[] = {"Right", "Left", "None", NULL};
 
     static void auton_handler(lv_event_t * e){
         autonID = lv_btnmatrix_get_selected_btn(lv_event_get_target(e)) + 1; //Negative is red, positive is blue
