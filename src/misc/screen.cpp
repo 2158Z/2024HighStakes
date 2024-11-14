@@ -123,14 +123,14 @@ namespace LVGL_screen {
 
         lv_obj_t * skills_switch = lv_switch_create(auton_tab);
         lv_obj_align(skills_switch, LV_ALIGN_BOTTOM_MID, 0, 0);
-        lv_obj_set_size(skills_switch, 120, 60);
+        lv_obj_set_size(skills_switch, 60, 30);
         lv_obj_set_style_bg_color(skills_switch, lv_color_make(100, 100, 100), LV_STATE_DISABLED);
         lv_obj_set_style_bg_color(skills_switch, lv_color_make(0, 255, 0), LV_STATE_DEFAULT);
         lv_obj_add_event_cb(skills_switch, skills_run_handler, LV_EVENT_ALL, NULL);
 
         auton_btnm_label = lv_label_create(auton_tab);
         lv_obj_add_style(auton_btnm_label, &label_theme, 0);
-        lv_obj_align(auton_btnm_label, LV_ALIGN_BOTTOM_MID, 0, 0);
+        lv_obj_align(auton_btnm_label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
         lv_label_set_text(auton_btnm_label, "");
 
         // lv_obj_t * image_obj = lv_img_create(info_tab);

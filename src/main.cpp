@@ -209,9 +209,9 @@ void autonomous() {
 	switch(LVGL_screen::autonID * LVGL_screen::side){
 		case 1: // Blue Right - Three point
 			chassis.setPose(50, 16, 90);
-			chassis.moveToPoint(31, 16, 2000, {.forwards=false, .earlyExitRange=2});
+			chassis.moveToPoint(34, 16, 2000, {.forwards=false, .maxSpeed=50, .earlyExitRange=2}); // changed from 31 to 33
 			// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});
-			chassis.moveToPoint(24,24, 2000, {.forwards=false, .maxSpeed=60});
+			chassis.moveToPoint(22,24, 2000, {.forwards=false, .maxSpeed=60});
 			while (chassis.isInMotion()) {
 				pros::delay(10); // don't consume all the cpu's resources
 			}
@@ -219,9 +219,9 @@ void autonomous() {
 			pros::delay(250);
 			conveyor.move_voltage(-11000);
 			intake.move_voltage(-12000);
-			pros::delay(250);
+			pros::delay(500);
 			chassis.turnToPoint(24,48,2000);
-			chassis.moveToPoint(20,46, 2000);
+			chassis.moveToPoint(24,46, 2000); // changed from 20 to 24
 			while (chassis.isInMotion()){
 				conveyor.move_voltage(-11000);
 				intake.move_voltage(-12000);
@@ -236,7 +236,7 @@ void autonomous() {
 				clamp.set_value(true);
 				pros::delay(10);
 			}
-			chassis.moveToPoint(6,44, 2000);
+			chassis.moveToPoint(5,44, 2000);
 			while (chassis.isInMotion()){
 				conveyor.move_voltage(-11000);
 				intake.move_voltage(-12000);
@@ -249,16 +249,16 @@ void autonomous() {
 			break;
 		case 2: // Blue Left
 			chassis.setPose(50, -16, 90);
-			chassis.moveToPoint(34.5, -16, 2000, {.forwards=false, .earlyExitRange=2});
+			chassis.moveToPoint(36, -16, 2000, {.forwards=false, .earlyExitRange=2}); // changed from 31.5 to 34.5
 			// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});
-			chassis.moveToPoint(24,-24, 3000, {.forwards=false, .maxSpeed=60});
+			chassis.moveToPoint(20,-26, 4000, {.forwards=false, .maxSpeed=60});
 			while (chassis.isInMotion()) {
 				pros::delay(10); // don't consume all the cpu's resources
 			}
 			clamp.set_value(true);
 			pros::delay(250);
 			chassis.turnToPoint(24,-48,2000);
-			chassis.moveToPoint(20,-46, 2000);
+			chassis.moveToPoint(24,-48, 2000);
 			while (chassis.isInMotion()){
 				conveyor.move_voltage(-11000);
 				intake.move_voltage(-12000);
@@ -272,17 +272,18 @@ void autonomous() {
 				clamp.set_value(true);
 				pros::delay(10);
 			}
-			pros::delay(500);
+			pros::delay(1000);
 			clamp.set_value(false);
 			pros::delay(500);
-			chassis.moveToPoint(13,-40, 1000, {.forwards=false, .earlyExitRange=2});
+			chassis.moveToPoint(14,-41, 1000, {.forwards=false	});
 			while (chassis.isInMotion()){
 				clamp.set_value(false);
 				conveyor.move_voltage(-11000);
 				intake.move_voltage(-12000);
 				pros::delay(10);
 			}
-			chassis.moveToPoint(3,-46, 4000, {.forwards=false, .maxSpeed=50});
+			chassis.turnToHeading(60, 1000);
+			chassis.moveToPoint(4,-45, 4000, {.forwards=false, .maxSpeed=40});
 			while (chassis.isInMotion()){
 				clamp.set_value(false);
 				conveyor.move_voltage(-11000);
