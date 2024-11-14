@@ -207,7 +207,7 @@ void competition_initialize() {}
 
 void autonomous() {
 	switch(LVGL_screen::autonID * LVGL_screen::side){
-		case 1: // Blue Right
+		case 1: // Blue Right - Three point
 			chassis.setPose(50, 16, 90);
 			chassis.moveToPoint(31, 16, 2000, {.forwards=false, .earlyExitRange=2});
 			// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});
@@ -249,31 +249,55 @@ void autonomous() {
 			break;
 		case 2: // Blue Left
 			chassis.setPose(50, -16, 90);
-			chassis.moveToPoint(31, -16, 2000, {.forwards=false, .earlyExitRange=2});
+			chassis.moveToPoint(34.5, -16, 2000, {.forwards=false, .earlyExitRange=2});
 			// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});
-			chassis.moveToPoint(24,-24, 2000, {.forwards=false, .maxSpeed=60});
+			chassis.moveToPoint(24,-24, 3000, {.forwards=false, .maxSpeed=60});
 			while (chassis.isInMotion()) {
 				pros::delay(10); // don't consume all the cpu's resources
 			}
 			clamp.set_value(true);
 			pros::delay(250);
-			chassis.turnToPoint(8,-44,4000, {.minSpeed=80});
+			chassis.turnToPoint(24,-48,2000);
+			chassis.moveToPoint(20,-46, 2000);
 			while (chassis.isInMotion()){
 				conveyor.move_voltage(-11000);
 				intake.move_voltage(-12000);
 				clamp.set_value(true);
 				pros::delay(10);
 			}
-			chassis.moveToPoint(6,-44, 2000);
+			chassis.turnToHeading(270, 1000);
 			while (chassis.isInMotion()){
 				conveyor.move_voltage(-11000);
 				intake.move_voltage(-12000);
 				clamp.set_value(true);
 				pros::delay(10);
 			}
+			pros::delay(500);
 			clamp.set_value(false);
-			chassis.turnToPoint(0,-48, 2000, {.forwards=false});
-			chassis.moveToPoint(0,42, 2000, {.forwards=false, .maxSpeed=60});
+			pros::delay(500);
+			chassis.moveToPoint(13,-40, 1000, {.forwards=false, .earlyExitRange=2});
+			while (chassis.isInMotion()){
+				clamp.set_value(false);
+				conveyor.move_voltage(-11000);
+				intake.move_voltage(-12000);
+				pros::delay(10);
+			}
+			chassis.moveToPoint(3,-46, 4000, {.forwards=false, .maxSpeed=50});
+			while (chassis.isInMotion()){
+				clamp.set_value(false);
+				conveyor.move_voltage(-11000);
+				intake.move_voltage(-12000);
+				pros::delay(10);
+			}
+			clamp.set_value(true);
+			pros::delay(250);
+			chassis.moveToPoint(40,-6, 4000);
+			while (chassis.isInMotion()){
+				clamp.set_value(true);
+				conveyor.move_voltage(-11000);
+				intake.move_voltage(-12000);
+				pros::delay(10);
+			}
 			break;
 		case -1: // Red Preload
 			pros::delay(200);
