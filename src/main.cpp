@@ -217,13 +217,13 @@ void autonomous() {
 			}
 			clamp.set_value(true);
 			pros::delay(250);
-			conveyor.move_voltage(-11000);
+			conveyor.move_voltage(-12000);
 			intake.move_voltage(-12000);
 			pros::delay(500);
 			chassis.turnToPoint(24,48,2000);
 			chassis.moveToPoint(24,46, 2000); // changed from 20 to 24
 			while (chassis.isInMotion()){
-				conveyor.move_voltage(-11000);
+				conveyor.move_voltage(-12000);
 				intake.move_voltage(-12000);
 				clamp.set_value(true);
 				pros::delay(10);
@@ -231,19 +231,19 @@ void autonomous() {
 			delay(250);
 			chassis.turnToPoint(8,44,4000, {.minSpeed=80});
 			while (chassis.isInMotion()){
-				conveyor.move_voltage(-11000);
+				conveyor.move_voltage(-12000);
 				intake.move_voltage(-12000);
 				clamp.set_value(true);
 				pros::delay(10);
 			}
 			chassis.moveToPoint(5,44, 2000);
 			while (chassis.isInMotion()){
-				conveyor.move_voltage(-11000);
+				conveyor.move_voltage(-12000);
 				intake.move_voltage(-12000);
 				clamp.set_value(true);
 				pros::delay(10);
 			}
-			conveyor.move_voltage(-11000);
+			conveyor.move_voltage(-12000);
 			intake.move_voltage(-12000);
 			pros::delay(10000);
 			break;
@@ -258,16 +258,16 @@ void autonomous() {
 			clamp.set_value(true);
 			pros::delay(250);
 			chassis.turnToPoint(24,-48,2000);
-			chassis.moveToPoint(24,-48, 2000);
+			chassis.moveToPoint(22,-48, 2000);
 			while (chassis.isInMotion()){
-				conveyor.move_voltage(-11000);
+				conveyor.move_voltage(-12000);
 				intake.move_voltage(-12000);
 				clamp.set_value(true);
 				pros::delay(10);
 			}
 			chassis.turnToHeading(270, 1000);
 			while (chassis.isInMotion()){
-				conveyor.move_voltage(-11000);
+				conveyor.move_voltage(-12000);
 				intake.move_voltage(-12000);
 				clamp.set_value(true);
 				pros::delay(10);
@@ -275,61 +275,93 @@ void autonomous() {
 			pros::delay(1000);
 			clamp.set_value(false);
 			pros::delay(500);
-			chassis.moveToPoint(14,-41, 1000, {.forwards=false	});
+			chassis.moveToPoint(18,-37, 1000, {.forwards=false	});
 			while (chassis.isInMotion()){
 				clamp.set_value(false);
-				conveyor.move_voltage(-11000);
+				conveyor.move_voltage(-12000);
 				intake.move_voltage(-12000);
 				pros::delay(10);
 			}
 			chassis.turnToHeading(60, 1000);
-			chassis.moveToPoint(4,-45, 4000, {.forwards=false, .maxSpeed=40});
+			chassis.moveToPoint(2.5,-46, 4000, {.forwards=false, .maxSpeed=40});
 			while (chassis.isInMotion()){
 				clamp.set_value(false);
-				conveyor.move_voltage(-11000);
+				conveyor.move_voltage(-12000);
 				intake.move_voltage(-12000);
 				pros::delay(10);
 			}
 			clamp.set_value(true);
 			pros::delay(250);
-			chassis.moveToPoint(40,-6, 4000);
+			chassis.moveToPoint(24,-37, 1000, {.minSpeed=80, .earlyExitRange=4});
+			chassis.moveToPose(40,-16, 0, 4000, {.minSpeed=80});
 			while (chassis.isInMotion()){
 				clamp.set_value(true);
-				conveyor.move_voltage(-11000);
+				conveyor.move_voltage(-12000);
+				intake.move_voltage(-12000);
+				pros::delay(10);
+			}
+			doinker.set_value(true);
+			pros::delay(250);
+			chassis.turnToHeading(270, 1000, {.minSpeed=100});
+			pros::delay(250);
+			while (chassis.isInMotion()){
+				clamp.set_value(true);
+				doinker.set_value(true);
+				conveyor.move_voltage(-12000);
+				intake.move_voltage(-12000);
+				pros::delay(10);
+			}
+			doinker.set_value(false);
+			pros::delay(250);
+			chassis.moveToPoint(20,-6, 4000);
+			while (chassis.isInMotion()){
+				clamp.set_value(true);
+				conveyor.move_voltage(-12000);
 				intake.move_voltage(-12000);
 				pros::delay(10);
 			}
 			break;
-		case -1: // Red Preload
-			pros::delay(200);
-			leftMG.move_voltage(-4000);
-			rightMG.move_voltage(-4000);
-			pros::delay(1500);
-			leftMG.move_voltage(0);
-			rightMG.move_voltage(0);
-			// driveDistance(-16, 5000);
-			
-			clamp.set_value(!clampToggle);
-			pros::delay(250);
-			conveyor.move_voltage(-10000);
-			turnAngle(-67.5);  // Left side 112.5, -67.5 Right side
-			intake.move_voltage(-12000);
-			driveDistance(36, 1000);
-			pros::delay(2000);
-			// turnAngle(-110);
-			// intake.move_voltage(12000);
-			// driveDistance(30, 500);
+		case -1: // Red Rigjt
 			break;
-		case -2: // Red corner
-			chassis.setPose(-60,-12,270);
-			chassis.moveToPose(-20, -24, 300, 2000, {.forwards = false, .minSpeed = 10});
-			clamp.set_value(!clampToggle);
-			conveyor.move_voltage(-8000);
-			intake.move_voltage(12000);
-			chassis.turnToPoint(-24, -52, 2000);
-			chassis.moveToPoint(-24,-52, 2000);
-			chassis.moveToPoint(-60,-60, 2000);
-			intake.move_voltage(0);
+		case -2: // Red Left
+			chassis.setPose(-50, -16, 270);
+			chassis.moveToPoint(-34, -16, 2000, {.forwards=false, .maxSpeed=50, .earlyExitRange=2}); // changed from 31 to 33
+			// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});
+			chassis.moveToPoint(-22,-24, 2000, {.forwards=false, .maxSpeed=60});
+			while (chassis.isInMotion()) {
+				pros::delay(10); // don't consume all the cpu's resources
+			}
+			clamp.set_value(true);
+			pros::delay(250);
+			conveyor.move_voltage(-12000);
+			intake.move_voltage(-12000);
+			pros::delay(500);
+			chassis.turnToPoint(-24,-48,2000);
+			chassis.moveToPoint(-24,-46, 2000); // changed from 20 to 24
+			while (chassis.isInMotion()){
+				conveyor.move_voltage(-12000);
+				intake.move_voltage(-12000);
+				clamp.set_value(true);
+				pros::delay(10);
+			}
+			delay(250);
+			chassis.turnToPoint(-8,-44,4000, {.minSpeed=80});
+			while (chassis.isInMotion()){
+				conveyor.move_voltage(-12000);
+				intake.move_voltage(-12000);
+				clamp.set_value(true);
+				pros::delay(10);
+			}
+			chassis.moveToPoint(-5,-44, 2000);
+			while (chassis.isInMotion()){
+				conveyor.move_voltage(-12000);
+				intake.move_voltage(-12000);
+				clamp.set_value(true);
+				pros::delay(10);
+			}
+			conveyor.move_voltage(-12000);
+			intake.move_voltage(-12000);
+			pros::delay(10000);
 			break;
 		case 0:
 			leftMG.move_voltage(-4000);
@@ -340,7 +372,7 @@ void autonomous() {
 			clampToggle = true;
 			pros::delay(250);
 			intake.move_voltage(-12000);
-			conveyor.move_voltage(-11000);
+			conveyor.move_voltage(-12000);
 			chassis.setPose(-50, -22.5, 300);
 			chassis.turnToPoint(-21.5, -24.5, 1500);
 			chassis.moveToPoint(-21.5, -24.5, 1500);
@@ -482,63 +514,13 @@ void opcontrol() {
 		}
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)){
-			chassis.setPose(50, -16, 90);
-			chassis.moveToPoint(34.5, -16, 2000, {.forwards=false, .earlyExitRange=2});
-			// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});
-			chassis.moveToPoint(24,-24, 3000, {.forwards=false, .maxSpeed=60});
-			while (chassis.isInMotion()) {
-				pros::delay(10); // don't consume all the cpu's resources
-			}
-			clamp.set_value(true);
-			pros::delay(250);
-			chassis.turnToPoint(24,-48,2000);
-			chassis.moveToPoint(20,-46, 2000);
-			while (chassis.isInMotion()){
-				conveyor.move_voltage(-11000);
-				intake.move_voltage(-12000);
-				clamp.set_value(true);
-				pros::delay(10);
-			}
-			chassis.turnToHeading(270, 1000);
-			while (chassis.isInMotion()){
-				conveyor.move_voltage(-11000);
-				intake.move_voltage(-12000);
-				clamp.set_value(true);
-				pros::delay(10);
-			}
-			pros::delay(500);
-			clamp.set_value(false);
-			pros::delay(500);
-			chassis.moveToPoint(13,-40, 1000, {.forwards=false, .earlyExitRange=2});
-			while (chassis.isInMotion()){
-				clamp.set_value(false);
-				conveyor.move_voltage(-11000);
-				intake.move_voltage(-12000);
-				pros::delay(10);
-			}
-			chassis.moveToPoint(3,-46, 4000, {.forwards=false, .maxSpeed=50});
-			while (chassis.isInMotion()){
-				clamp.set_value(false);
-				conveyor.move_voltage(-11000);
-				intake.move_voltage(-12000);
-				pros::delay(10);
-			}
-			clamp.set_value(true);
-			pros::delay(250);
-			chassis.moveToPoint(40,-6, 4000);
-			while (chassis.isInMotion()){
-				clamp.set_value(true);
-				conveyor.move_voltage(-11000);
-				intake.move_voltage(-12000);
-				pros::delay(10);
-			}
-			break;
+			autonomous();
 		}
 
 		climbUp.set_value(hangUp);
 		climbDown.set_value(hangDown);
 
-		conveyor.move_voltage(-11000 * conveyorToggle * conveyorDirection);
+		conveyor.move_voltage(-12000 * conveyorToggle * conveyorDirection);
 
 		pros::delay(25);
 	}
