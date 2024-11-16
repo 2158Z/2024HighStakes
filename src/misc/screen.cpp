@@ -28,7 +28,7 @@ namespace LVGL_screen {
 
     const char * odom = "X: 0 Y: 0";
 
-    int autonID = 0;
+    int autonID = 1;
     int side = 1;
     bool skills = false;
 
@@ -46,7 +46,7 @@ namespace LVGL_screen {
     static void auton_handler(lv_event_t * e){
         autonID = lv_btnmatrix_get_selected_btn(lv_event_get_target(e)) + 1; //Negative is red, positive is blue
         if (autonID >= 65535){
-            autonID = 0; 
+            autonID = 1; 
         }
     }
 
