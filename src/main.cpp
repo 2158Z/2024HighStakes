@@ -6,10 +6,10 @@
 #include "PID.h"
 ASSET(wp1_txt);
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
-pros::MotorGroup leftMG({-6, -8, -10}, pros::MotorGearset::blue);
-pros::MotorGroup rightMG({2, 3, 4}, pros::MotorGearset::blue);
+pros::MotorGroup leftMG({-1, -3, -2}, pros::MotorGearset::blue);
+pros::MotorGroup rightMG({11, 13, 12}, pros::MotorGearset::blue);
 pros::MotorGroup ladyBrown({10, -8}, pros::MotorGearset::rpm_200);
-pros::Motor conveyor(2, pros::MotorGearset::blue);
+pros::Motor conveyor(4, pros::MotorGearset::blue);
 
 lemlib::Pose pose = lemlib::Pose(0, 0);
 
@@ -19,6 +19,7 @@ pros::adi::DigitalOut doinker('C');
 pros::Rotation lbSensor(21);
 int lbTarget = 0;
 int lbCurAngle = 0;
+int lbMax = 0;
 
 int conveyorToggle = false;
 int clampToggle = false;
@@ -202,7 +203,7 @@ void initialize()
 	lbSensor.reset();
 	leftMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
 	rightMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
-	ladyBrown.set_brake_mode_all(pros::E_MOTOR_BRAKE_BRAKE);
+	ladyBrown.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
 }
 
 void disabled() {}
@@ -469,10 +470,16 @@ void nextState()
 {
 	if (lbTarget == 0){
 		lbTarget = 27;
+		lbMax = 3000;
 	} else if (lbTarget == 27){
 		lbTarget = 135;
+		conveyor.move_voltage(9000);
+		pros::delay(150);
+		conveyor.move_voltage(0);
+		lbMax = 2750;
 	} else if (lbTarget == 135){
 		lbTarget = 0;
+		lbMax = 6000;
 	}
 	return;
 }
@@ -482,11 +489,9 @@ void ladyBrownControl()
 	printf("Angle: %d, Target: %d \n", lbSensor.get_angle()/100, lbTarget);
 	lbCurAngle = lbSensor.get_angle() / 100;
 	if (lbCurAngle > 300 || lbCurAngle < 0) {lbCurAngle = 0;}
-	if(lbCurAngle < lbTarget - 5){
-		ladyBrown.move_voltage(7700);
-	} else if (lbCurAngle > lbTarget + 5){
-		ladyBrown.move_voltage(-7700);
-	}
+	double kP = 0.035;
+	double error = lbTarget - lbCurAngle;
+	ladyBrown.move_voltage(error * kP * 4000);
 }
 
 void opcontrol()
@@ -552,7 +557,7 @@ void opcontrol()
 			nextState();
 		}
 
-		conveyor.move_voltage(-11000 * conveyorToggle * conveyorDirection);
+		conveyor.move_voltage(-12000 * conveyorToggle * conveyorDirection);
 		ladyBrownControl();
 
 		pros::delay(25);
