@@ -13,8 +13,9 @@ pros::Motor conveyor(4, pros::MotorGearset::blue);
 
 lemlib::Pose pose = lemlib::Pose(0, 0);
 
-pros::adi::DigitalOut clamp('E');
-pros::adi::DigitalOut doinker('C');
+pros::adi::DigitalOut clampIn('B');
+pros::adi::DigitalOut clampOut('C');
+pros::adi::DigitalOut doinker('A');
 
 pros::Rotation lbSensor(21);
 int lbTarget = 0;
@@ -139,8 +140,8 @@ void driveDistance(float distance, float timeout, std::vector<float> dConstants 
 		// float rightOutput = rightPID.compute(rightError) * 10000;
 		float output = trackingWheel.compute(error) * 10000;
 
-		// leftOutput = util::clamp(leftOutput, -driveConstants[0], driveConstants[0]);
-		// rightOutput = util::clamp(rightOutput, -driveConstants[0], driveConstants[0]);
+		// leftOutput = util::clampIn(leftOutput, -driveConstants[0], driveConstants[0]);
+		// rightOutput = util::clampIn(rightOutput, -driveConstants[0], driveConstants[0]);
 		output = util::clamp(output, -driveConstants[0], driveConstants[0]);
 
 		// if(rightOutput > (lastRightOutput + lastRightAddition)) {
@@ -223,7 +224,7 @@ void autonomous()
 		{
 			pros::delay(10); // don't consume all the cpu's resources
 		}
-		clamp.set_value(true);
+		clampIn.set_value(true);
 		pros::delay(250);
 		conveyor.move_voltage(-12000);
 		pros::delay(500);
@@ -232,7 +233,7 @@ void autonomous()
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		delay(250);
@@ -240,14 +241,14 @@ void autonomous()
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		chassis.moveToPoint(5, 44, 2000);
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		conveyor.move_voltage(-12000);
@@ -256,7 +257,7 @@ void autonomous()
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		break;
@@ -269,21 +270,21 @@ void autonomous()
 		{
 			pros::delay(10); // don't consume all the cpu's resources
 		}
-		clamp.set_value(true);
+		clampIn.set_value(true);
 		pros::delay(250);
 		chassis.turnToPoint(24, -48, 2000);
 		chassis.moveToPoint(22, -48, 2000);
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		chassis.turnToHeading(270, 1000);
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		pros::delay(1000);
@@ -297,21 +298,21 @@ void autonomous()
 		{
 			pros::delay(10); // don't consume all the cpu's resources
 		}
-		clamp.set_value(true);
+		clampIn.set_value(true);
 		pros::delay(250);
 		chassis.turnToPoint(-24, -48, 2000);
 		chassis.moveToPoint(-22, -48, 2000);
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		chassis.turnToHeading(90, 1000);
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		pros::delay(1000);
@@ -325,7 +326,7 @@ void autonomous()
 		{
 			pros::delay(10); // don't consume all the cpu's resources
 		}
-		clamp.set_value(true);
+		clampIn.set_value(true);
 		pros::delay(250);
 		conveyor.move_voltage(-12000);
 		pros::delay(500);
@@ -334,7 +335,7 @@ void autonomous()
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		delay(250);
@@ -342,14 +343,14 @@ void autonomous()
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		chassis.moveToPoint(-5, 44, 2000);
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		conveyor.move_voltage(-12000);
@@ -358,14 +359,14 @@ void autonomous()
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		chassis.moveToPoint(-20, 0, 1000, {.forwards = false});
 		while (chassis.isInMotion())
 		{
 			conveyor.move_voltage(-12000);
-			clamp.set_value(true);
+			clampIn.set_value(true);
 			pros::delay(10);
 		}
 		break;
@@ -401,7 +402,7 @@ void autonomous()
 	// rightMG.move_voltage(0);
 	// // driveDistance(-16, 5000);
 
-	// clamp.set_value(!clampToggle);
+	// clampIn.set_value(!clampToggle);
 	// pros::delay(250);
 	// conveyor.move_voltage(-10000);
 	// turnAngle(-67.5);  // Left side 112.5, -67.5 Right side
@@ -513,7 +514,8 @@ void opcontrol()
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT))
 		{
-			clamp.set_value(!clampToggle);
+			clampIn.set_value(!clampToggle);
+			clampOut.set_value(clampToggle);
 			clampToggle = !clampToggle;
 		}
 
