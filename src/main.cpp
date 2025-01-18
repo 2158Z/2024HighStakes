@@ -17,7 +17,7 @@ pros::adi::DigitalOut clampIn('B');
 pros::adi::DigitalOut clampOut('C');
 pros::adi::DigitalOut doinker('A');
 
-pros::Rotation lbSensor(21);
+pros::Rotation lbSensor(18);
 int lbTarget = 0;
 int lbCurAngle = 0;
 int lbMax = 0;
@@ -68,14 +68,22 @@ lemlib::ControllerSettings angular_controller(
 	0	 // maximum acceleration (slew)
 );
 
-lemlib::TrackingWheel verticalTrackingWheel(
-	&verticalSensor,
-	lemlib::Omniwheel::NEW_275,
-	0 // Offset
+lemlib::TrackingWheel leftSideTracking(
+	&leftMG,
+	2.75,
+	10.5,
+	450 // Offset
+);
+
+lemlib::TrackingWheel rightSideTracking(
+	&rightMG,
+	2.75,
+	10.5,
+	450 // Offset
 );
 
 lemlib::OdomSensors sensors(
-	&verticalTrackingWheel, // vertical tracking wheel 1, set to null
+	&leftSideTracking, // vertical tracking wheel 1, set to null
 	nullptr,
 	nullptr, // horizontal tracking wheel 1
 	nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
@@ -289,7 +297,7 @@ void autonomous()
 		}
 		pros::delay(1000);
 		break;
-	case -1: // Red Right
+	case -1: // Blue Right
 		chassis.setPose(-50, -16, 270);
 		chassis.moveToPoint(-34, -16, 2000, {.forwards = false, .earlyExitRange = 2}); // changed from 31.5 to 34.5
 		// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});

@@ -118,7 +118,7 @@ class TrackingWheel {
          * lemlib::TrackingWheel leftTrackingWheel(&leftMotors, lemlib::Omniwheel::OLD_4, -5, 360);
          * @endcode
          */
-        TrackingWheel(pros::MotorGroup* motors, float wheelDiameter, float distance, float rpm);
+        TrackingWheel(pros::v5::MotorGroup* motors, float wheelDiameter, float distance, float rpm);
         /**
          * @brief Reset the tracking wheel position to 0
          *

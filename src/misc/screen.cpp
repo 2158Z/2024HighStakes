@@ -5,7 +5,7 @@
 #include "liblvgl/widgets/lv_btnmatrix.h"
 #include "liblvgl/widgets/lv_img.h"
 #include "liblvgl/widgets/lv_label.h"
-#include "main.h"
+#include "lemlib/api.hpp"
 #include "liblvgl/lvgl.h"
 #include "pros/misc.hpp"
 #include "screen.h"
