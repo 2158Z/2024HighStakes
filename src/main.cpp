@@ -6,7 +6,7 @@
 #include "PID.h"
 ASSET(wp1_txt);
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
-pros::MotorGroup leftMG({-1, -3, -2}, pros::MotorGearset::blue);
+pros::MotorGroup leftMG({-1, -3, -14}, pros::MotorGearset::blue);
 pros::MotorGroup rightMG({11, 13, 12}, pros::MotorGearset::blue);
 pros::MotorGroup ladyBrown({10, -8}, pros::MotorGearset::rpm_200);
 pros::Motor conveyor(4, pros::MotorGearset::blue);
@@ -17,7 +17,7 @@ pros::adi::DigitalOut clampIn('B');
 pros::adi::DigitalOut clampOut('C');
 pros::adi::DigitalOut doinker('A');
 
-pros::Rotation lbSensor(18);
+pros::Rotation lbSensor(15);
 int lbTarget = 0;
 int lbCurAngle = 0;
 int lbMax = 0;
@@ -85,8 +85,8 @@ lemlib::TrackingWheel rightSideTracking(
 lemlib::OdomSensors sensors(
 	&leftSideTracking, // vertical tracking wheel 1, set to null
 	nullptr,
-	nullptr, // horizontal tracking wheel 1
-	nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
+	nullptr,
+	nullptr, 
 	&imu	 // inertial sensor
 );
 
