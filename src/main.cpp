@@ -31,16 +31,16 @@ pros::Rotation verticalSensor(15);												   // Vertical Sensor
 std::vector<float> driveConstants = {6000, 0.17, 0.0005, 1, 2, 75, 0.25, 1000};	   // 1.25
 std::vector<float> turnConstants = {12000, 0.015, 0.00, 0.103, 2, 75, 0.75, 1000}; //.0075
 
-lemlib::Drivetrain drivetrain(
+lemlib::Drivetrain drivetrain( // Width 12.5, Length 11
 	&leftMG,
 	&rightMG,
 	12.5,						// Track width
 	lemlib::Omniwheel::NEW_275, // Wheel type
 	450,						// RPM
-	2							// Horizontal Drift
+	0							// Horizontal Drift
 );
 
-pros::IMU imu(19);
+pros::IMU imu(8);
 
 // lateral PID controller
 lemlib::ControllerSettings lateral_controller(
@@ -70,38 +70,24 @@ lemlib::ControllerSettings angular_controller(
 
 lemlib::TrackingWheel leftSideTracking(
 	&leftMG,
-	2.75,
-	10.5,
+	lemlib::Omniwheel::NEW_275,
+	7.5,
 	450 // Offset
 );
 
 lemlib::TrackingWheel rightSideTracking(
 	&rightMG,
-	2.75,
-	10.5,
+	lemlib::Omniwheel::NEW_275,
+	7.5,
 	450 // Offset
 );
 
 lemlib::OdomSensors sensors(
 	&leftSideTracking, // vertical tracking wheel 1, set to null
-	nullptr,
+	&rightSideTracking,
 	nullptr,
 	nullptr, 
 	&imu	 // inertial sensor
-);
-
-// input curve for throttle input during driver control
-lemlib::ExpoDriveCurve throttleCurve(
-	3,	  // joystick deadband out of 127
-	10,	  // minimum output where drivetrain will move out of 127
-	1.019 // expo curve gain
-);
-
-// input curve for steer input during driver control
-lemlib::ExpoDriveCurve steerCurve(
-	3,	  // joystick deadband out of 127
-	10,	  // minimum output where drivetrain will move out of 127
-	1.019 // expo curve gain
 );
 
 lemlib::Chassis chassis(
@@ -219,218 +205,39 @@ void disabled() {}
 
 void competition_initialize() {}
 
+lemlib::MoveToPointParams defaultMoveParams = {.maxSpeed = 80};
+lemlib::TurnToHeadingParams defaultTurnParams = {};
+
 void autonomous()
 {
-	switch (LVGL_screen::autonID * LVGL_screen::side)
-	{
-	case 1: // Blue Right - Three point
-		chassis.setPose(50, 16, 90);
-		chassis.moveToPoint(32, 16, 2000, {.forwards = false, .maxSpeed = 50, .earlyExitRange = 2}); // changed from 31 to 33
-		// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});
-		chassis.moveToPoint(18, 26, 2000, {.forwards = false, .maxSpeed = 60});
-		while (chassis.isInMotion())
-		{
-			pros::delay(10); // don't consume all the cpu's resources
-		}
-		clampIn.set_value(true);
-		pros::delay(250);
-		conveyor.move_voltage(-12000);
-		pros::delay(500);
-		// chassis.turnToPoint(24, 48, 2000);
-		// chassis.moveToPoint(24, 46, 2000); // changed from 20 to 24
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		// delay(250);
-		// chassis.turnToPoint(8, 44, 4000, {.minSpeed = 80});
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		// chassis.moveToPoint(5, 44, 2000);
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		// conveyor.move_voltage(-12000);
-		// pros::delay(2000);
-		// chassis.moveToPoint(20, 0, 1000, {.forwards = false});
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		break;
-	case 2: // Blue Left
-		chassis.setPose(50, -16, 90);
-		chassis.moveToPoint(32, -16, 2000, {.forwards = false, .earlyExitRange = 2}); // changed from 31.5 to 34.5
-		// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});
-		chassis.moveToPoint(16, -28, 4000, {.forwards = false, .maxSpeed = 60});
-		while (chassis.isInMotion())
-		{
-			pros::delay(10); // don't consume all the cpu's resources
-		}
-		clampIn.set_value(true);
-		pros::delay(250);
-		conveyor.move_voltage(-12000);
-		pros::delay(500);
-		// chassis.turnToPoint(24, -48, 2000);
-		// chassis.moveToPoint(22, -48, 2000);
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		// chassis.turnToPoint(24, 0, 4000);
-		// chassis.moveToPoint(24, 0, 4000);
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		// pros::delay(1000);
-		break;
-	case -1: // Red Right
-		chassis.setPose(-50, -16, 270);
-		chassis.moveToPoint(-32, -16, 2000, {.forwards = false, .earlyExitRange = 2}); // changed from 31.5 to 34.5
-		// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});
-		chassis.moveToPoint(-18, -28, 4000, {.forwards = false, .maxSpeed = 60});
-		while (chassis.isInMotion())
-		{
-			pros::delay(10); // don't consume all the cpu's resources
-		}
-		clampIn.set_value(true);
-		pros::delay(250);
-		conveyor.move_voltage(-12000);
-		pros::delay(500);
-		// chassis.turnToPoint(-24, -48, 2000);
-		// chassis.moveToPoint(-22, -48, 2000);
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		// chassis.turnToPoint(-24, 0, 4000);
-		// chassis.moveToPoint(-24, 0 ,4000);
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		// pros::delay(1000);
-		break;
-	case -2: // Red Left
-		chassis.setPose(-50, 16, 270);
-		chassis.moveToPoint(-32, 16, 2000, {.forwards = false, .maxSpeed = 50, .earlyExitRange = 2}); // changed from 31 to 33
-		// chassis.turnToPoint(-24,-24, 2000, {.forwards=false});
-		chassis.moveToPoint(-18, 26, 2000, {.forwards = false, .maxSpeed = 60});
-		while (chassis.isInMotion())
-		{
-			pros::delay(10); // don't consume all the cpu's resources
-		}
-		clampIn.set_value(true);
-		pros::delay(250);
-		conveyor.move_voltage(-12000);
-		pros::delay(500);
-		// chassis.turnToPoint(-24, 48, 2000);
-		// chassis.moveToPoint(-24, 46, 2000); // changed from 20 to 24
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		// delay(250);
-		// chassis.turnToPoint(-8, 44, 4000, {.minSpeed = 80});
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		// chassis.moveToPoint(-5, 44, 2000);
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		// conveyor.move_voltage(-12000);
-		// pros::delay(2000);
-		// chassis.turnToPoint(-20, 0, 1000);
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		// chassis.moveToPoint(-20, 0, 1000, {.forwards = false});
-		// while (chassis.isInMotion())
-		// {
-		// 	conveyor.move_voltage(-12000);
-		// 	clampIn.set_value(true);
-		// 	pros::delay(10);
-		// }
-		break;
-	case 0:
-		// leftMG.move_voltage(-4000);
-		// rightMG.move_voltage(-4000);
-		// pros::delay(350);
-		// leftMG.move_voltage(0);
-		// rightMG.move_voltage(0);
-		// clampToggle = true;
-		// pros::delay(250);
-		// intake.move_voltage(-12000);
-		// conveyor.move_voltage(-12000);
-		// chassis.setPose(-50, -22.5, 300);
-		// chassis.turnToPoint(-21.5, -24.5, 1500);
-		// chassis.moveToPoint(-21.5, -24.5, 1500);
-		// chassis.turnToPoint(-23.5, -50, 1500);
-		// chassis.moveToPoint(-23.5, -50, 1500);
-		// chassis.turnToPoint(-50, -60, 1500);
-		// chassis.moveToPoint(-50, -60, 1500);
-		// chassis.turnToPoint(-45, -45, 1500);
-		// chassis.moveToPoint(-45, -45, 1500);
-		// chassis.turnToPoint(-60, -48, 1500);
-		// chassis.moveToPoint(-60, -48, 1500);
-		break;
-		// skills
-	}
-	// pros::delay(200);
-	// leftMG.move_voltage(-4000);
-	// rightMG.move_voltage(-4000);
-	// pros::delay(1500);
-	// leftMG.move_voltage(0);
-	// rightMG.move_voltage(0);
-	// // driveDistance(-16, 5000);
-
-	// clampIn.set_value(!clampToggle);
-	// pros::delay(250);
-	// conveyor.move_voltage(-10000);
-	// turnAngle(-67.5);  // Left side 112.5, -67.5 Right side
-	// intake.move_voltage(-12000);
-	// driveDistance(36, 1000);
-	// turnAngle(-110);
-	// intake.move_voltage(12000);
-	// driveDistance(30, 500);
-
-	// leftMG.move_voltage(12000);
-	// rightMG.move_voltage(12000);
-	// pros::delay(1000);
-	// leftMG.move_voltage(0);
-	// rightMG.move_voltage(0);
+	chassis.setPose(-62, 0, 90);
+	chassis.moveToPoint(-47, 0, 1000, defaultMoveParams);
+	chassis.turnToHeading(0, 1000);
+	chassis.moveToPoint(-47, -16, 1000, {.forwards = false, .maxSpeed=80});
+	chassis.moveToPoint(-47, -24, 1000, {.forwards = false, .maxSpeed=80});
+	chassis.moveToPoint(-24, -24, 1000);
+	chassis.moveToPoint(0, -48, 1000);
+	chassis.moveToPoint(0, -60, 1000);
+	chassis.moveToPoint(-24, -47, 1000);
+	chassis.moveToPoint(-36, -60, 1000);
+	chassis.moveToPoint(-47, -59, 1000);
+	chassis.moveToPoint(-47, -47, 1000);
+	chassis.moveToPoint(-59, -47, 1000);
+	chassis.moveToPoint(-58, -56, 1000);
+	chassis.moveToPoint(-62, -62, 1000);
+	chassis.moveToPoint(-58, -56, 1000);
+	chassis.moveToPoint(-47.5, 12, 1000);
+	chassis.moveToPoint(-47, 24, 1000);
+	chassis.moveToPoint(-24, 24, 1000);
+	chassis.moveToPoint(-23.5, 48, 1000);
+	chassis.moveToPoint(0, 59, 1000);
+	chassis.moveToPoint(-35, 47, 1000);
+	chassis.moveToPoint(-47, 47, 1000);
+	chassis.moveToPoint(-60, 47, 1000);
+	chassis.moveToPoint(-47, 58, 1000);
+	chassis.moveToPoint(-60, 60, 1000);
+	chassis.moveToPoint(-62, 62, 1000);
+	
 }
 
 std::vector<float> arcadeControl(double leftInput, double rightInput)
