@@ -134,7 +134,7 @@ namespace LVGL_screen {
         lv_label_set_text(auton_btnm_label, "");
 
         // lv_obj_t * image_obj = lv_img_create(info_tab);
-        // lv_obj_set_size(image_obj, 120, 120); // {250,207 z2} {120,120 z2p}
+        // lv_obj_set_size(image_obj, 250, 207); // {250,207 z2} {120,120 z2p}
         // lv_obj_align(image_obj, LV_ALIGN_CENTER, 0, 0);
         // lv_img_set_src(image_obj, &z2);
 
