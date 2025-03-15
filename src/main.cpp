@@ -51,12 +51,24 @@ lemlib::ControllerSettings lateral_controller(
 	0,	 // integral gain (kI)
 	3,	 // derivative gain (kD)
 	3,	 // anti windup
-	1,	 // small error range, in inches
+	0.5,	 // small error range, in inches
 	100, // small error range timeout, in milliseconds
-	3,	 // large error range, in inches
+	1.5,	 // large error range, in inches
 	500, // large error range timeout, in milliseconds
 	0	 // maximum acceleration (slew)
 );
+
+// lemlib::ControllerSettings lateral_controller(
+// 	10, // proportional gain (kP)
+// 	0, // integral gain (kI)
+// 	3, // derivative gain (kD)
+// 	0, // anti windup
+// 	0, // small error range, in inches
+// 	0, // small error range timeout, in milliseconds
+// 	0, // large error range, in inches
+// 	0, // large error range timeout, in milliseconds
+// 	0 // maximum acceleration (slew)
+// );
 
 // angular PID controller
 lemlib::ControllerSettings angular_controller(
@@ -209,70 +221,117 @@ void disabled() {}
 void competition_initialize() {
 }
 
-lemlib::MoveToPointParams defaultMoveParams = {.maxSpeed = 80};
-lemlib::TurnToPointParams defaultTurnParams = {.maxSpeed = 80};
+lemlib::MoveToPointParams defaultMoveParams = {.maxSpeed = 90};
+lemlib::TurnToPointParams defaultTurnParams = {.maxSpeed = 90};
 
 void autonomous()
 {
 
 	// chassis.setPose(0, 0, 0);
-	// chassis.moveToPoint(0, 24, 2000, defaultMoveParams);
-	// chassis.moveToPoint(0, 0, 2000, {.forwards = false, .maxSpeed = 80});
+	// chassis.moveToPoint(0, 24, 4000, defaultMoveParams);
+	// chassis.moveToPoint(0, 0, 4000, {.forwards = false, .maxSpeed = 80});
 
 
 	chassis.setPose(-62, 0, 90);
 	conveyor.move_voltage(12000);
 	pros::delay(500);
 	chassis.moveToPoint(-48, 0, 2000, {.maxSpeed = 60});
-	chassis.turnToHeading(0, 2000, {.maxSpeed = 80});
+	chassis.turnToHeading(0, 2000, {.maxSpeed = 90});
 	clampIn.set_value(false);
 	clampOut.set_value(true);
-	pros::delay(250);
 	chassis.moveToPoint(-48, -24, 2000, {.forwards = false, .maxSpeed=60}, false);
 	clampIn.set_value(true);
 	clampOut.set_value(false);
 	pros::delay(250);
 	intake.move_voltage(-12000);
-	chassis.turnToPoint(-24, -24, 2000, {.maxSpeed = 60});
+	chassis.turnToPoint(-24, -24, 1000, {.maxSpeed = 60});
 	chassis.moveToPoint(-24, -24, 2000, {.maxSpeed = 60});
 	chassis.moveToPoint(0, -45, 2000, defaultMoveParams);
-	chassis.moveToPoint(0, -70, 2000, {.maxSpeed = 60}, false);
-	chassis.setPose(0, -g4, 180);
-	chassis.moveToPoint(0, -50, 2000, {.forwards = false, .maxSpeed = 80});
-	chassis.turnToPoint(-24, -47, 2000, {.maxSpeed = 80});
+	chassis.moveToPoint(0, -58, 2000, {.maxSpeed = 60}, false);
+	// chassis.setPose(0, -60, 180);
+	chassis.moveToPoint(0, -50, 2000, {.forwards = false, .maxSpeed = 90});
+	chassis.turnToPoint(-24, -47, 1000, {.maxSpeed = 90});
 	chassis.moveToPoint(-24, -47, 2000, defaultMoveParams);
-	chassis.turnToPoint(-32, -64, 2000, defaultTurnParams);
-	chassis.moveToPoint(-32, -64, 2000, defaultMoveParams);
-	chassis.turnToPoint(-47, -64, 2000, defaultTurnParams);
-	chassis.moveToPoint(-47, -64, 2000, defaultMoveParams);
-	chassis.turnToPoint(-44, -46, 2000, defaultTurnParams);
-	chassis.moveToPoint(-44, -46, 2000, defaultMoveParams);
-	chassis.turnToPoint(-60, -45, 2000, defaultTurnParams);
-	chassis.moveToPoint(-60, -45, 2000, defaultMoveParams);
-	chassis.moveToPoint(-56, -56, 2000, defaultMoveParams);
-	chassis.turnToPoint(62, 62, 2000, {.maxSpeed = 80});
-	chassis.moveToPoint(-62, -62, 2000, {.forwards = false, .maxSpeed=80});
+	chassis.turnToPoint(-32, -65, 1000, defaultTurnParams);
+	chassis.moveToPoint(-32, -65, 2000, defaultMoveParams);
+	chassis.turnToPoint(-45, -64, 1000, defaultTurnParams);
+	chassis.moveToPoint(-45, -64, 2000, defaultMoveParams);
+
+	chassis.turnToPoint(-32, -65, 1000, {.forwards = false, .maxSpeed = 90});
+	chassis.moveToPoint(-32, -65, 2000, {.forwards = false, .maxSpeed = 90});
+
+	chassis.turnToPoint(-49, -46, 1000, defaultTurnParams);
+	chassis.moveToPoint(-49, -46, 2000, defaultMoveParams);
+
+	chassis.turnToPoint(-32, -60, 1000, {.forwards = false, .maxSpeed = 90});
+	chassis.moveToPoint(-32, -60, 2000, {.forwards = false, .maxSpeed = 90});
+
+	chassis.turnToPoint(-62, -50, 1000, defaultTurnParams);
+	chassis.moveToPoint(-62, -50, 2000, defaultMoveParams);
+	chassis.turnToHeading(0, 2000);
+	chassis.moveToPoint(-56, -56, 2000, {.forwards = false, .maxSpeed = 90});
+	chassis.turnToPoint(60, 60, 1000, {.maxSpeed = 90});
+	chassis.moveToPoint(-62, -62, 2000, {.forwards = false, .maxSpeed=90});
+	conveyor.move_voltage(-12000);
 	clampIn.set_value(false);
 	clampOut.set_value(true);
+	pros::delay(250);
+	conveyor.move_voltage(12000);
 	// chassis.moveToPoint(-58, -56, 2000, defaultMoveParams);
-	chassis.moveToPoint(-47.5, 12, 2000, defaultMoveParams);
-	chassis.turnToHeading(180, 2000, {.maxSpeed=80});
-	chassis.moveToPoint(-47, 24, 2000, {.forwards = false, .maxSpeed=80});
+	chassis.moveToPoint(-60, -30, 2000, {.maxSpeed = 90});
+	chassis.turnToHeading(90, 1000, {}, false);
+	chassis.moveToPoint(-90,-30, 1000,{.forwards = false}, false);
+	chassis.setPose(-64.5,-26, 90);
+
+	chassis.moveToPoint(-47, 0, 2000, defaultMoveParams);
+	chassis.turnToHeading(180, 1000, {.maxSpeed=90});
+	chassis.moveToPoint(-47, 30, 2000, {.forwards = false, .maxSpeed=90}, false);
+	pros::delay(250);
 	clampIn.set_value(true);
 	clampOut.set_value(false);
-	chassis.turnToPoint(-24, 24, 2000, {.maxSpeed=80});
-	chassis.moveToPoint(-24, 24, 2000, defaultMoveParams);
-	chassis.moveToPoint(-23.5, 48, 2000, defaultMoveParams);
-	chassis.moveToPoint(0, 59, 2000, defaultMoveParams);
+	pros::delay(250);
+
+	chassis.turnToPoint(-22, 24, 1000, {.maxSpeed=90});
+	chassis.moveToPoint(-22, 24, 2000, defaultMoveParams);
+	chassis.moveToPoint(-26, 49, 2000, defaultMoveParams);
+	chassis.moveToPoint(0, 60, 2000, defaultMoveParams);
 	chassis.moveToPoint(-35, 47, 2000, defaultMoveParams);
-	chassis.moveToPoint(-47, 47, 2000, defaultMoveParams);
-	chassis.moveToPoint(-60, 47, 2000, defaultMoveParams);
-	chassis.moveToPoint(-47, 58, 2000, defaultMoveParams);
-	chassis.moveToPoint(-60, 60, 2000, defaultMoveParams);
-	chassis.turnToPoint(60, -60, 2000, {.maxSpeed = 80});
-	chassis.moveToPoint(-62, 62, 2000, {.forwards = false, .maxSpeed=80});
+	chassis.moveToPoint(-47, 51, 2000, defaultMoveParams);
+	chassis.moveToPoint(-60, 51, 2000, defaultMoveParams);
+	chassis.turnToPoint(-47, 62, 2000, defaultTurnParams);
+	chassis.moveToPoint(-47, 62, 2000, defaultMoveParams);
+	chassis.moveToPoint(-60, 60, 2000, {.forwards = false, .maxSpeed=90});
+	chassis.turnToPoint(60, -60, 2000, {.maxSpeed = 90});
+	conveyor.move_voltage(-12000);
+	chassis.moveToPoint(-62, 62, 2000, {.forwards = false, .maxSpeed=90});
+	clampIn.set_value(false);
+	clampOut.set_value(true);	
+
+	chassis.moveToPoint(46, 33, 2000);
+	chassis.moveToPoint(60, 22, 2000, {.forwards = false}, false);
+	clampIn.set_value(true);
+	clampOut.set_value(false);
+	pros::delay(250);
+	chassis.moveToPoint(64, 64, 2000, {.forwards = false}, false);
 	clampIn.set_value(false);
 	clampOut.set_value(true);
+	pros::delay(250);
+	chassis.moveToPoint(58, -17, 2000);
+	chassis.moveToPoint(70, -83, 2000);
+
+	// chassis.moveToPoint(-24, 24, 2000, defaultMoveParams);
+
+	// chassis.moveToPoint(0, 0, 2000);
+	// chassis.moveToPoint(-21.5, 0.5, 2000);
+	// chassis.moveToPoint(-39, 5, 2000);
+	// chassis.moveToPoint(-21, 0.5, 2000);
+	// chassis.moveToPoint(-13.5, 5, 2000);
+	// chassis.moveToPoint(-11, 28, 2000);
+	// chassis.moveToPoint(-28, 39, 2000);
+	// chassis.moveToPoint(-27.5, 13, 2000);
+	// chassis.moveToPoint(-27, 57, 2000);
+	
+
 }
 
 std::vector<float> arcadeControl(double leftInput, double rightInput)
