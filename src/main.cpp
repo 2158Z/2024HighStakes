@@ -8,7 +8,7 @@ ASSET(wp1_txt);
 pros::Controller controller(pros::E_CONTROLLER_MASTER);
 pros::MotorGroup leftMG({-1, -2, -14}, pros::MotorGearset::blue);
 pros::MotorGroup rightMG({11, 13, 12}, pros::MotorGearset::blue);
-pros::MotorGroup ladyBrown({10, -8}, pros::MotorGearset::rpm_200);
+pros::MotorGroup ladyBrown({10, -19}, pros::MotorGearset::rpm_200, pros::v5::MotorUnits::degrees);
 pros::Motor conveyor(4, pros::MotorGearset::rpm_200);
 pros::Motor intake(16, pros::MotorGearset::rpm_200);
 pros::MotorGroup leftTracking({-2}, pros::MotorGearset::blue);
@@ -19,6 +19,8 @@ lemlib::Pose pose = lemlib::Pose(0, 0);
 pros::adi::DigitalOut clampIn('C');
 pros::adi::DigitalOut clampOut('B');
 pros::adi::DigitalOut doinker('A');
+pros::adi::DigitalOut climb1('G');
+pros::adi::DigitalOut climb2('H');
 
 pros::Rotation lbSensor(15);
 int lbTarget = 0;
@@ -213,7 +215,8 @@ void initialize()
 	// lbSensor.reset();
 	leftMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
 	rightMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
-	// ladyBrown.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
+	ladyBrown.set_zero_position(0);
+	ladyBrown.set_brake_mode_all(pros::E_MOTOR_BRAKE_HOLD);
 }
 
 void disabled() {}
@@ -232,92 +235,92 @@ void autonomous()
 	// chassis.moveToPoint(0, 0, 4000, {.forwards = false, .maxSpeed = 80});
 
 
-	chassis.setPose(-62, 0, 90);
-	conveyor.move_voltage(12000);
-	pros::delay(500);
-	chassis.moveToPoint(-48, 0, 2000, {.maxSpeed = 60});
-	chassis.turnToHeading(0, 2000, {.maxSpeed = 90});
-	clampIn.set_value(false);
-	clampOut.set_value(true);
-	chassis.moveToPoint(-48, -24, 2000, {.forwards = false, .maxSpeed=60}, false);
-	clampIn.set_value(true);
-	clampOut.set_value(false);
-	pros::delay(250);
-	intake.move_voltage(-12000);
-	chassis.turnToPoint(-24, -24, 1000, {.maxSpeed = 60});
-	chassis.moveToPoint(-24, -24, 2000, {.maxSpeed = 60});
-	chassis.moveToPoint(0, -45, 2000, defaultMoveParams);
-	chassis.moveToPoint(0, -58, 2000, {.maxSpeed = 60}, false);
-	// chassis.setPose(0, -60, 180);
-	chassis.moveToPoint(0, -50, 2000, {.forwards = false, .maxSpeed = 90});
-	chassis.turnToPoint(-24, -47, 1000, {.maxSpeed = 90});
-	chassis.moveToPoint(-24, -47, 2000, defaultMoveParams);
-	chassis.turnToPoint(-32, -65, 1000, defaultTurnParams);
-	chassis.moveToPoint(-32, -65, 2000, defaultMoveParams);
-	chassis.turnToPoint(-45, -64, 1000, defaultTurnParams);
-	chassis.moveToPoint(-45, -64, 2000, defaultMoveParams);
+	// chassis.setPose(-62, 0, 90);
+	// conveyor.move_voltage(12000);
+	// pros::delay(500);
+	// chassis.moveToPoint(-48.65, 0, 2000, {.maxSpeed = 60});
+	// chassis.turnToHeading(0, 2000, {.maxSpeed = 90});
+	// clampIn.set_value(false);
+	// clampOut.set_value(true);
+	// chassis.moveToPoint(-49, -28, 2000, {.forwards = false, .maxSpeed=80}, false);
+	// clampIn.set_value(true);
+	// clampOut.set_value(false);
+	// pros::delay(250);
+	// intake.move_voltage(-12000);
+	// chassis.turnToPoint(-24, -24, 1000, {.maxSpeed = 60});
+	// chassis.moveToPoint(-24, -24, 2000, {.maxSpeed = 60});
+	// chassis.moveToPoint(0, -45, 2000, defaultMoveParams);
+	// chassis.moveToPoint(0, -58, 2000, {.maxSpeed = 60}, false);
+	// // chassis.setPose(0, -60, 180);
+	// chassis.moveToPoint(0, -50, 2000, {.forwards = false, .maxSpeed = 90});
+	// chassis.turnToPoint(-24, -47, 1000, {.maxSpeed = 90});
+	// chassis.moveToPoint(-24, -47, 2000, defaultMoveParams);
+	// chassis.turnToPoint(-32, -65, 1000, defaultTurnParams);
+	// chassis.moveToPoint(-32, -65, 2000, defaultMoveParams);
+	// chassis.turnToPoint(-45, -64, 1000, defaultTurnParams);
+	// chassis.moveToPoint(-45, -64, 2000, defaultMoveParams);
 
-	chassis.turnToPoint(-32, -65, 1000, {.forwards = false, .maxSpeed = 90});
-	chassis.moveToPoint(-32, -65, 2000, {.forwards = false, .maxSpeed = 90});
+	// chassis.turnToPoint(-32, -65, 1000, {.forwards = false, .maxSpeed = 90});
+	// chassis.moveToPoint(-32, -65, 2000, {.forwards = false, .maxSpeed = 90});
 
-	chassis.turnToPoint(-49, -46, 1000, defaultTurnParams);
-	chassis.moveToPoint(-49, -46, 2000, defaultMoveParams);
+	// chassis.turnToPoint(-50, -46, 1000, defaultTurnParams);
+	// chassis.moveToPoint(-50, -46, 2000, defaultMoveParams);
 
-	chassis.turnToPoint(-32, -60, 1000, {.forwards = false, .maxSpeed = 90});
-	chassis.moveToPoint(-32, -60, 2000, {.forwards = false, .maxSpeed = 90});
+	// chassis.turnToPoint(-32, -60, 1000, {.forwards = false, .maxSpeed = 90});
+	// chassis.moveToPoint(-32, -60, 2000, {.forwards = false, .maxSpeed = 90});
 
-	chassis.turnToPoint(-62, -50, 1000, defaultTurnParams);
-	chassis.moveToPoint(-62, -50, 2000, defaultMoveParams);
-	chassis.turnToHeading(0, 2000);
-	chassis.moveToPoint(-56, -56, 2000, {.forwards = false, .maxSpeed = 90});
-	chassis.turnToPoint(60, 60, 1000, {.maxSpeed = 90});
-	chassis.moveToPoint(-62, -62, 2000, {.forwards = false, .maxSpeed=90});
-	conveyor.move_voltage(-12000);
-	clampIn.set_value(false);
-	clampOut.set_value(true);
-	pros::delay(250);
-	conveyor.move_voltage(12000);
-	// chassis.moveToPoint(-58, -56, 2000, defaultMoveParams);
-	chassis.moveToPoint(-60, -30, 2000, {.maxSpeed = 90});
-	chassis.turnToHeading(90, 1000, {}, false);
-	chassis.moveToPoint(-90,-30, 1000,{.forwards = false}, false);
-	chassis.setPose(-64.5,-26, 90);
+	// chassis.turnToPoint(-62, -50, 1000, defaultTurnParams);
+	// chassis.moveToPoint(-62, -50, 2000, defaultMoveParams);
+	// chassis.turnToHeading(0, 2000);
+	// chassis.moveToPoint(-56, -56, 2000, {.forwards = false, .maxSpeed = 90});
+	// chassis.turnToPoint(60, 60, 1000, {.maxSpeed = 90});
+	// chassis.moveToPoint(-64, -64, 2000, {.forwards = false, .maxSpeed=90});
+	// conveyor.move_voltage(-12000);
+	// clampIn.set_value(false);
+	// clampOut.set_value(true);
+	// pros::delay(250);
+	// conveyor.move_voltage(12000);
+	// // chassis.moveToPoint(-58, -56, 2000, defaultMoveParams);
+	// chassis.moveToPoint(-60, -30, 2000, {.maxSpeed = 90});
+	// chassis.turnToHeading(90, 1000, {}, false);
+	// chassis.moveToPoint(-90,-30, 1000,{.forwards = false}, false);
+	// chassis.setPose(-64.5,-26, 90);
 
-	chassis.moveToPoint(-47, 0, 2000, defaultMoveParams);
-	chassis.turnToHeading(180, 1000, {.maxSpeed=90});
-	chassis.moveToPoint(-47, 30, 2000, {.forwards = false, .maxSpeed=90}, false);
-	pros::delay(250);
-	clampIn.set_value(true);
-	clampOut.set_value(false);
-	pros::delay(250);
+	// chassis.moveToPoint(-47, 0, 2000, defaultMoveParams);
+	// chassis.turnToHeading(180, 1000, {.maxSpeed=90});
+	// chassis.moveToPoint(-47, 30, 2000, {.forwards = false, .maxSpeed=90}, false);
+	// pros::delay(250);
+	// clampIn.set_value(true);
+	// clampOut.set_value(false);
+	// pros::delay(250);
 
-	chassis.turnToPoint(-22, 24, 1000, {.maxSpeed=90});
-	chassis.moveToPoint(-22, 24, 2000, defaultMoveParams);
-	chassis.moveToPoint(-26, 49, 2000, defaultMoveParams);
-	chassis.moveToPoint(0, 60, 2000, defaultMoveParams);
-	chassis.moveToPoint(-35, 47, 2000, defaultMoveParams);
-	chassis.moveToPoint(-47, 51, 2000, defaultMoveParams);
-	chassis.moveToPoint(-60, 51, 2000, defaultMoveParams);
-	chassis.turnToPoint(-47, 62, 2000, defaultTurnParams);
-	chassis.moveToPoint(-47, 62, 2000, defaultMoveParams);
-	chassis.moveToPoint(-60, 60, 2000, {.forwards = false, .maxSpeed=90});
-	chassis.turnToPoint(60, -60, 2000, {.maxSpeed = 90});
-	conveyor.move_voltage(-12000);
-	chassis.moveToPoint(-62, 62, 2000, {.forwards = false, .maxSpeed=90});
-	clampIn.set_value(false);
-	clampOut.set_value(true);	
+	// chassis.turnToPoint(-22, 24, 1000, {.maxSpeed=90});
+	// chassis.moveToPoint(-22, 24, 2000, defaultMoveParams);
+	// chassis.moveToPoint(-22, 49, 2000, defaultMoveParams);
+	// chassis.moveToPoint(0, 60, 2000, defaultMoveParams);
+	// chassis.moveToPoint(-35, 47, 2000, defaultMoveParams);
+	// chassis.moveToPoint(-47, 51, 2000, defaultMoveParams);
+	// chassis.moveToPoint(-60, 51, 2000, defaultMoveParams);
+	// chassis.turnToPoint(-43, 62, 2000, defaultTurnParams);
+	// chassis.moveToPoint(-43, 62, 2000, defaultMoveParams);
+	// chassis.moveToPoint(-60, 60, 2000, {.forwards = false, .maxSpeed=90});
+	// chassis.turnToPoint(60, -60, 2000, {.maxSpeed = 90});
+	// conveyor.move_voltage(-12000);
+	// chassis.moveToPoint(-62, 62, 2000, {.forwards = false, .maxSpeed=90});
+	// clampIn.set_value(false);
+	// clampOut.set_value(true);	
 
-	chassis.moveToPoint(46, 33, 2000);
-	chassis.moveToPoint(60, 22, 2000, {.forwards = false}, false);
-	clampIn.set_value(true);
-	clampOut.set_value(false);
-	pros::delay(250);
-	chassis.moveToPoint(64, 64, 2000, {.forwards = false}, false);
-	clampIn.set_value(false);
-	clampOut.set_value(true);
-	pros::delay(250);
-	chassis.moveToPoint(58, -17, 2000);
-	chassis.moveToPoint(70, -83, 2000);
+	// chassis.moveToPoint(46, 33, 2000);
+	// chassis.moveToPoint(60, 22, 2000, {.forwards = false}, false);
+	// clampIn.set_value(true);
+	// clampOut.set_value(false);
+	// pros::delay(250);
+	// chassis.moveToPoint(64, 64, 2000, {.forwards = false}, false);
+	// clampIn.set_value(false);
+	// clampOut.set_value(true);
+	// pros::delay(250);
+	// chassis.moveToPoint(58, -17, 2000);
+	// chassis.moveToPoint(70, -83, 2000);
 
 	// chassis.moveToPoint(-24, 24, 2000, defaultMoveParams);
 
@@ -421,62 +424,55 @@ void opcontrol()
 		// float rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X)/127;
 
 		float leftY = controller.get_analog(pros::E_CONTROLLER_ANALOG_LEFT_Y);
-		float rightX = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_X);
+		float rightY = controller.get_analog(pros::E_CONTROLLER_ANALOG_RIGHT_Y);
 
+		conveyor.move_voltage(0);
+		intake.move_voltage(0);
 		// // move the robot
 		// chassis.arcade(easeInOutExpo(leftY) * util::sgn(leftY) * 127, easeInOutExpo(rightX) * util::sgn(rightX) * 127, false, 0.75);
-		chassis.arcade(leftY, rightX);
+		chassis.tank(leftY, rightY, true);
 
-		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_RIGHT))
-		{
-			clampIn.set_value(!clampToggle);
-			clampOut.set_value(clampToggle);
-			clampToggle = !clampToggle;
+		if (controller.get_digital_new_press(E_CONTROLLER_DIGITAL_RIGHT)){
+			climb1.set_value(true);
+			climb2.set_value(true);
+		} else if (controller.get_digital_new_press(E_CONTROLLER_DIGITAL_Y)){
+			climb1.set_value(false);
+			climb2.set_value(false);
+		}
+		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1)){
+			intake.move_voltage(-12000);
+			conveyor.move_voltage(12000);
+		} else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R2)){
+			intake.move_voltage(12000);
+			conveyor.move_voltage(-12000);
+		}
+		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2)){
+			clampOut.set_value(true);
+			clampIn.set_value(false);
+		}		
+		else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1)){
+			clampOut.set_value(false);
+			clampIn.set_value(true);
+		}	
+
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP)){
+			ladyBrown.set_brake_mode(E_MOTOR_BRAKE_HOLD);
+			ladyBrown.move_absolute(82, 127);
+		}
+		else if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT)){
+			ladyBrown.set_brake_mode(E_MOTOR_BRAKE_HOLD);
+			ladyBrown.move_absolute(330, 127);
+		}
+		else if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN)){
+			ladyBrown.set_brake_mode(E_MOTOR_BRAKE_HOLD);
+			ladyBrown.move_absolute(0, 127);
 		}
 
-		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_Y))
-		{
-			if (conveyorToggle == 1)
-			{
-				conveyorToggle = 0;
-			}
-			else
-			{
-				conveyorToggle = 1;
-			}
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_X)){
+			doinker.set_value(true);
+		} else if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_B)){
+			doinker.set_value(false);
 		}
-
-		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_LEFT))
-		{
-			if (conveyorDirection == 1)
-			{
-				conveyorDirection = -1;
-			}
-			else
-			{
-				conveyorDirection = 1;
-			}
-		}
-
-		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L2))
-		{
-			doinkerToggle = !doinkerToggle;
-			doinker.set_value(doinkerToggle);
-		}
-
-		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_DOWN))
-		{
-			autonomous();
-		}
-
-		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP))
-		{
-			nextState();
-		}
-
-		conveyor.move_voltage(-12000 * conveyorToggle * conveyorDirection);
-		ladyBrownControl();
-
 		pros::delay(25);
 	}
 }
