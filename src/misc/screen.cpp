@@ -41,7 +41,8 @@ namespace LVGL_screen {
 
     lv_coord_t tab = 60;
 
-    const char * auton_map[] = {"Right", "Left", "None", NULL};
+    const char * blue_auton_map[] = {"1", "2", "3", NULL}; // FIX ME
+    const char * red_auton_map[] = {"1", "2", "3"};
 
     static void auton_handler(lv_event_t * e){
         autonID = lv_btnmatrix_get_selected_btn(lv_event_get_target(e)) + 1; //Negative is red, positive is blue
@@ -56,7 +57,12 @@ namespace LVGL_screen {
         lv_obj_t * obj = lv_event_get_target(e);
         if(code == LV_EVENT_VALUE_CHANGED) {
             LV_UNUSED(obj);
-            side = (lv_obj_has_state(obj, LV_STATE_CHECKED)) ? 1 : -1; //Not Checked Red, Checked Blue
+            side = (lv_obj_has_state(obj, LV_STATE_CHECKED)) ? 1 : -1; // True (Positive) = Blue Side || False (Negative) = Red Side
+        }
+        if (side == 1){
+            lv_btnmatrix_set_map(auton_btnm, blue_auton_map);
+        } else if (side == -1){
+            lv_btnmatrix_set_map(auton_btnm, blue_auton_map);
         }
     }
 
@@ -66,7 +72,7 @@ namespace LVGL_screen {
         lv_obj_t * obj = lv_event_get_target(e);
         if(code == LV_EVENT_VALUE_CHANGED) {
             LV_UNUSED(obj);
-            skills = (lv_obj_has_state(obj, LV_STATE_CHECKED)) ? true : false; //Not Checked Red, Checked Blue
+            skills = (lv_obj_has_state(obj, LV_STATE_CHECKED)) ? true : false;
         }
     }
 
@@ -112,7 +118,7 @@ namespace LVGL_screen {
         lv_obj_align(auton_btnm, LV_ALIGN_LEFT_MID, 0, 0);
         lv_obj_add_style(auton_btnm, &btn_theme, 0);
         lv_obj_add_event_cb(auton_btnm, auton_handler, LV_EVENT_ALL, NULL);
-        lv_btnmatrix_set_map(auton_btnm, auton_map);
+        lv_btnmatrix_set_map(auton_btnm, blue_auton_map);
 
         lv_obj_t * auton_switch = lv_switch_create(auton_tab);
         lv_obj_align(auton_switch, LV_ALIGN_RIGHT_MID, 0, 0);
@@ -124,8 +130,9 @@ namespace LVGL_screen {
         lv_obj_t * skills_switch = lv_switch_create(auton_tab);
         lv_obj_align(skills_switch, LV_ALIGN_BOTTOM_MID, 0, 0);
         lv_obj_set_size(skills_switch, 60, 30);
-        lv_obj_set_style_bg_color(skills_switch, lv_color_make(100, 100, 100), LV_STATE_DISABLED);
-        lv_obj_set_style_bg_color(skills_switch, lv_color_make(0, 255, 0), LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_color(skills_switch, lv_color_make(200, 200, 200), LV_STATE_DEFAULT);
+        lv_obj_set_style_bg_color(skills_switch, lv_color_make(0,255,0), LV_STATE_DISABLED);
+        lv_obj_set_style_bg_color(skills_switch, lv_color_make(0,255,0), LV_STATE_CHECKED);
         lv_obj_add_event_cb(skills_switch, skills_run_handler, LV_EVENT_ALL, NULL);
 
         auton_btnm_label = lv_label_create(auton_tab);
