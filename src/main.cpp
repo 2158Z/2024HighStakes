@@ -252,7 +252,7 @@ lemlib::TurnToPointParams defaultTurnParams = {.maxSpeed = 90};
 void autonomous()
 {
 	pros::Task colorSort(color_sort,"colorSort");
-	switch (LVGL_screen::autonID * LVGL_screen::side)
+	switch (LVGL_screen::autonID)
 	{
 	case 1: // Blue Side Goal Rush
 		chassis.setPose(55, -63, 270);
