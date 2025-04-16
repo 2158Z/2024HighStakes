@@ -10,7 +10,7 @@
 #include "pros/misc.hpp"
 #include "screen.h"
 
-LV_IMG_DECLARE(z2);
+// LV_IMG_DECLARE(z2);
 LV_IMG_DECLARE(z2p);
 LV_IMG_DECLARE(oiia);
 
@@ -135,10 +135,10 @@ namespace LVGL_screen {
         lv_obj_align(auton_btnm_label, LV_ALIGN_BOTTOM_LEFT, 0, 0);
         lv_label_set_text(auton_btnm_label, "");
 
-        lv_obj_t * image_obj2 = lv_img_create(info_tab);
-        lv_obj_set_size(image_obj2, 250, 207); // {250,207 z2} {120,120 z2p}
-        lv_obj_align(image_obj2, LV_ALIGN_CENTER, 0, 0);
-        lv_img_set_src(image_obj2, &z2);
+        // lv_obj_t * image_obj2 = lv_img_create(info_tab);
+        // lv_obj_set_size(image_obj2, 250, 207); // {250,207 z2} {120,120 z2p}
+        // lv_obj_align(image_obj2, LV_ALIGN_CENTER, 0, 0);
+        // lv_img_set_src(image_obj2, &z2);
 
         odom_label = lv_label_create(info_tab);
         lv_obj_add_style(odom_label, &label_theme, 0);

@@ -219,7 +219,7 @@ void color_sort()
 	{
 		conveyor.move_voltage(12000);
 		rgb_value = optical.get_rgb();
-		if (rgb_value.blue > 0)
+		if (rgb_value.blue > 60)
 		{
 			pros::delay(100);
 			conveyor.move_voltage(0);
@@ -228,6 +228,9 @@ void color_sort()
 		}
 	}
 }
+
+// pros::Task colorSort(color_sort,"colorSort");
+
 
 void initialize()
 {
@@ -249,30 +252,82 @@ void competition_initialize()
 lemlib::MoveToPointParams defaultMoveParams = {.maxSpeed = 90};
 lemlib::TurnToPointParams defaultTurnParams = {.maxSpeed = 90};
 
+void colorSort(){
+	conveyor.move_voltage(12000);
+	intake.move_voltage(-12000);
+	/*
+	color sort task running in background, 
+	if blue is detected then conveyor will eject ring
+	*/
+	//theoretical function code here, only executes in function
+	while(true)
+	{
+		std::cout << "Red: " << optical.get_rgb().red << std::endl;
+		// std::cout << "Green: " << optical.get_rgb().green << std::endl;
+		std::cout << "Blue: " << optical.get_rgb().blue << std::endl;
+		// std::cout << "Brightness: " << optical.get_rgb().brightness << std::endl;
+		pros::delay(20);
+		if(optical.get_rgb().blue < 3)
+		{
+			std::cout << "Blue: " << optical.get_rgb().blue << std::endl;
+			pros::delay(500);
+			conveyor.move_voltage(0);
+			pros::delay(100);
+			conveyor.move_voltage(12000);
+		}
+	}
+}
+
 void autonomous()
 {
-	pros::Task colorSort(color_sort,"colorSort");
+	Task colorSortTask = Task(colorSort, "colorSort");
+	
 	switch (LVGL_screen::autonID)
 	{
 	case 1: // Blue Side Goal Rush
-		chassis.setPose(55, -63, 270);
-		chassis.moveToPoint(16.5, -53.54, 1500, {.earlyExitRange = 2});
-		chassis.turnToHeading(290, 100, {.minSpeed = 100, .earlyExitRange = 2}, false);
+		chassis.setPose(54, -61, 270);
+		chassis.moveToPoint(13.5, -53.5, 1500, {.earlyExitRange = 1});
+		chassis.turnToHeading(290, 100, {.minSpeed = 100, .earlyExitRange = 1}, false);
 		doinker.set_value(true);
 		pros::delay(250);
-		chassis.turnToHeading(180, 1500, {.direction = AngularDirection::CCW_COUNTERCLOCKWISE, .minSpeed = 100}, false);
+		// chassis.turnToHeading(180, 1500, {.direction = AngularDirection::CCW_COUNTERCLOCKWISE, .minSpeed = 100}, false);
+		chassis.moveToPoint(34.5, -62, 2000, {.forwards = false, .maxSpeed = 80}, false);
 		doinker.set_value(false);
 		pros::delay(250);
-		chassis.moveToPoint(16.5, -33, 2000, {.forwards = false, .maxSpeed = 60});
+		chassis.turnToHeading(130, 2000, {.minSpeed = 100});
 		clampIn.set_value(false);
 		clampOut.set_value(true);
-		pros::delay(500);
-		chassis.moveToPoint(28.5, -20, 3000, {.forwards = false, .maxSpeed = 60}, false);
+		chassis.moveToPoint(16, -51, 2000, {.forwards = false, .maxSpeed = 100}, false);
 		clampIn.set_value(true);
 		clampOut.set_value(false);
+		pros::delay(250);
 		conveyor.move_voltage(12000);
 		intake.move_voltage(-12000);
-		chassis.moveToPoint(24, -49, 1500, {.maxSpeed = 80});
+		chassis.moveToPoint(32, -43.5, 2000, defaultMoveParams, false);
+		pros::delay(1500);
+		clampIn.set_value(false);
+		clampOut.set_value(true);
+		pros::delay(250);
+		chassis.turnToHeading(180, 2000);
+		chassis.moveToPoint(24, -15	, 2000, {.forwards = false, .maxSpeed = 100}, false);
+		pros::delay(250);
+		clampIn.set_value(true);
+		clampOut.set_value(false);
+		pros::delay(250);
+		chassis.moveToPoint(42, -13.5, 2000, defaultMoveParams);
+		chassis.turnToHeading(15, 2000);
+		doinker.set_value(true);
+		pros::delay(5000);
+		// chassis.moveToPoint(16.5, -33, 2000, {.forwards = false, .maxSpeed = 80});
+		// clampIn.set_value(false);
+		// clampOut.set_value(true);
+		// pros::delay(500);
+		// chassis.moveToPoint(28.5, -20, 3000, {.forwards = false, .maxSpeed = 80}, false);
+		// clampIn.set_value(true);
+		// clampOut.set_value(false);
+		// conveyor.move_voltage(12000);
+		// intake.move_voltage(-12000);
+		// chassis.moveToPoint(24, -49, 1500, {.maxSpeed = 80});
 		return;
 	case 2: // Blue Side 4 Ring
 		chassis.setPose(62.5, 47.909, 270);
@@ -319,6 +374,11 @@ void autonomous()
 		chassis.turnToPoint(36, 64, 2000, defaultTurnParams, false);
 		chassis.moveToPoint(36, 64, 2000, defaultMoveParams);
 		pros::delay(5000);
+	case 5:
+		clampIn.set_value(true);
+		clampOut.set_value(false);
+		// pros::delay(10000);
+		// colorSortTask.suspend();
 	}
 }
 
@@ -445,15 +505,17 @@ void opcontrol()
 			intake.move_voltage(12000);
 			conveyor.move_voltage(-12000);
 		}
-		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L2))
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L2))
 		{
-			clampOut.set_value(true);
-			clampIn.set_value(false);
-		}
-		else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
-		{
-			clampOut.set_value(false);
-			clampIn.set_value(true);
+
+			clampToggle = !clampToggle;
+		// 	clampOut.set_value(true);
+		// 	clampIn.set_value(false);
+		// }
+		// else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
+		// {
+		// 	clampOut.set_value(false);
+		// 	clampIn.set_value(true);
 		}
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP))
@@ -480,10 +542,14 @@ void opcontrol()
 		{
 			doinker.set_value(false);
 		}
-		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_A))
+		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_A))
 		{
 			autonomous();
 		}
+
+		clampIn.set_value(clampToggle);
+		clampOut.set_value(!clampToggle);
+
 		pros::delay(25);
 	}
 }
