@@ -33,10 +33,11 @@ int lbMax = 0;
 
 int conveyorToggle = false;
 int clampToggle = false;
+bool climbToggle = false;
 int conveyorDirection = 1;
 bool doinkerToggle = false;
 
-bool toggleColorSort = false; // true = on; false = off
+bool colorSortToggle = false; // true = on; false = off
 bool colorSorter = false;
 bool sortRed = false; // if true, rejects red rings, else rejects blue
 
@@ -251,7 +252,7 @@ void colorSort()
 		// std::cout << "Blue: " << optical.get_rgb().blue << std::endl;
 		// std::cout << "Brightness: " << optical.get_rgb().brightness << std::endl;
 		pros::delay(20);
-		if (toggleColorSort)
+		if (colorSortToggle)
 		{
 			if (sortRed)
 			{
@@ -378,7 +379,7 @@ void autonomous()
 	case 5:
 		clampIn.set_value(true);
 		clampOut.set_value(false);
-		toggleColorSort = true;
+		colorSortToggle = true;
 		// pros::delay(10000);
 		// colorSortTask.suspend();
 	}
@@ -470,7 +471,7 @@ void ladyBrownControl()
 
 void opcontrol()
 {
-	toggleColorSort = false;
+	colorSortToggle = false;
 	while (true)
 	{
 		pose = chassis.getPose();
@@ -488,16 +489,12 @@ void opcontrol()
 		// chassis.arcade(easeInOutExpo(leftY) * util::sgn(leftY) * 127, easeInOutExpo(rightX) * util::sgn(rightX) * 127, false, 0.75);
 		chassis.tank(leftY, rightY, true);
 
-		if (controller.get_digital_new_press(E_CONTROLLER_DIGITAL_RIGHT))
-		{
-			climb1.set_value(true);
-			climb2.set_value(true);
+		if (controller.get_digital_new_press(E_CONTROLLER_DIGITAL_Y)){
+			climbToggle = !climbToggle;
+			climb1.set_value(climbToggle);
+			climb2.set_value(climbToggle);
 		}
-		else if (controller.get_digital_new_press(E_CONTROLLER_DIGITAL_Y))
-		{
-			climb1.set_value(false);
-			climb2.set_value(false);
-		}
+
 		if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_R1))
 		{
 			intake.move_voltage(-12000);
@@ -523,7 +520,7 @@ void opcontrol()
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L1))
 		{
-			toggleColorSort = true;
+			colorSortToggle = true;
 		}
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP))
