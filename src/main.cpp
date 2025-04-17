@@ -36,7 +36,9 @@ int clampToggle = false;
 int conveyorDirection = 1;
 bool doinkerToggle = false;
 
+bool toggleColorSort = false; // true = on; false = off
 bool colorSorter = false;
+bool sortRed = false; // if true, rejects red rings, else rejects blue
 
 pros::Rotation verticalSensor(15);												   // Vertical Sensor
 std::vector<float> driveConstants = {6000, 0.17, 0.0005, 1, 2, 75, 0.25, 2000};	   // 1.25
@@ -212,29 +214,10 @@ void turnAngle(float angle, std::vector<float> tConstants = turnConstants)
 	printf("%s", "settled");
 }
 
-void color_sort()
-{
-	pros::c::optical_rgb_s_t rgb_value;
-	while (colorSorter)
-	{
-		conveyor.move_voltage(12000);
-		rgb_value = optical.get_rgb();
-		if (rgb_value.blue > 60)
-		{
-			pros::delay(100);
-			conveyor.move_voltage(0);
-			pros::delay(100);
-			conveyor.move_voltage(12000);
-		}
-	}
-}
-
-// pros::Task colorSort(color_sort,"colorSort");
-
-
 void initialize()
 {
 	LVGL_screen::main();
+	optical.set_integration_time(5);
 	chassis.calibrate();
 	// lbSensor.reset();
 	leftMG.set_brake_mode_all(pros::E_MOTOR_BRAKE_COAST);
@@ -252,28 +235,46 @@ void competition_initialize()
 lemlib::MoveToPointParams defaultMoveParams = {.maxSpeed = 90};
 lemlib::TurnToPointParams defaultTurnParams = {.maxSpeed = 90};
 
-void colorSort(){
+void colorSort()
+{
 	conveyor.move_voltage(12000);
 	intake.move_voltage(-12000);
 	/*
-	color sort task running in background, 
+	color sort task running in background,
 	if blue is detected then conveyor will eject ring
 	*/
-	//theoretical function code here, only executes in function
-	while(true)
+	// theoretical function code here, only executes in function
+	while (true)
 	{
-		std::cout << "Red: " << optical.get_rgb().red << std::endl;
+		// std::cout << "Red: " << optical.get_rgb().red << std::endl;
 		// std::cout << "Green: " << optical.get_rgb().green << std::endl;
-		std::cout << "Blue: " << optical.get_rgb().blue << std::endl;
+		// std::cout << "Blue: " << optical.get_rgb().blue << std::endl;
 		// std::cout << "Brightness: " << optical.get_rgb().brightness << std::endl;
 		pros::delay(20);
-		if(optical.get_rgb().blue < 3)
+		if (toggleColorSort)
 		{
-			std::cout << "Blue: " << optical.get_rgb().blue << std::endl;
-			pros::delay(500);
-			conveyor.move_voltage(0);
-			pros::delay(100);
-			conveyor.move_voltage(12000);
+			if (sortRed)
+			{
+				if (optical.get_rgb().blue < 0.5) // Reject Red (When sortRed true)
+				{
+					std::cout << "Blue: " << optical.get_raw().blue << std::endl;
+					pros::delay(445);
+					conveyor.move_voltage(-9000);
+					pros::delay(100);
+					conveyor.move_voltage(12000);
+				}
+			}
+			else
+			{
+				if (optical.get_rgb().red < 0.5) // Reject Blue (When sortRed false)
+				{
+					std::cout << "Blue: " << optical.get_raw().blue << std::endl;
+					pros::delay(500);
+					conveyor.move_voltage(-9000);
+					pros::delay(100);
+					conveyor.move_voltage(12000);
+				}
+			}
 		}
 	}
 }
@@ -281,7 +282,7 @@ void colorSort(){
 void autonomous()
 {
 	Task colorSortTask = Task(colorSort, "colorSort");
-	
+
 	switch (LVGL_screen::autonID)
 	{
 	case 1: // Blue Side Goal Rush
@@ -309,7 +310,7 @@ void autonomous()
 		clampOut.set_value(true);
 		pros::delay(250);
 		chassis.turnToHeading(180, 2000);
-		chassis.moveToPoint(24, -15	, 2000, {.forwards = false, .maxSpeed = 100}, false);
+		chassis.moveToPoint(24, -15, 2000, {.forwards = false, .maxSpeed = 100}, false);
 		pros::delay(250);
 		clampIn.set_value(true);
 		clampOut.set_value(false);
@@ -377,6 +378,7 @@ void autonomous()
 	case 5:
 		clampIn.set_value(true);
 		clampOut.set_value(false);
+		toggleColorSort = true;
 		// pros::delay(10000);
 		// colorSortTask.suspend();
 	}
@@ -468,6 +470,7 @@ void ladyBrownControl()
 
 void opcontrol()
 {
+	toggleColorSort = false;
 	while (true)
 	{
 		pose = chassis.getPose();
@@ -509,13 +512,18 @@ void opcontrol()
 		{
 
 			clampToggle = !clampToggle;
-		// 	clampOut.set_value(true);
-		// 	clampIn.set_value(false);
-		// }
-		// else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
-		// {
-		// 	clampOut.set_value(false);
-		// 	clampIn.set_value(true);
+			// 	clampOut.set_value(true);
+			// 	clampIn.set_value(false);
+			// }
+			// else if (controller.get_digital(pros::E_CONTROLLER_DIGITAL_L1))
+			// {
+			// 	clampOut.set_value(false);
+			// 	clampIn.set_value(true);
+		}
+
+		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L1))
+		{
+			toggleColorSort = true;
 		}
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP))
