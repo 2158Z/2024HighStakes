@@ -44,7 +44,7 @@ namespace LVGL_screen {
     lv_coord_t tab = 60;
 
     const char * blue_auton_map[] = {"Blue\nGoal\nRush", "Blue 4\nRing\nMiddle", "Blue 4\nRing\nSweep", "4", "5", NULL}; // FIX ME
-    const char * red_auton_map[] = {"1", "2", "3", "4", "5", NULL};
+    const char * red_auton_map[] = {"Red\nGoal\nRush", "Red 4\nRing\nMiddle", "3", "4", "5", NULL};
 
     static void auton_blue_handler(lv_event_t * e){
         autonID = lv_btnmatrix_get_selected_btn(lv_event_get_target(e)) + 1; //Negative is red, positive is blue

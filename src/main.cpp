@@ -286,7 +286,7 @@ void autonomous()
 
 	switch (LVGL_screen::autonID)
 	{
-	case 1: // Blue Side Goal
+	case 1: // Blue Side Goal Rush
 		chassis.setPose(54, -61, 270);
 		chassis.moveToPoint(13.5, -53.5, 1500, {.earlyExitRange = 1});
 		chassis.turnToHeading(290, 100, {.minSpeed = 100, .earlyExitRange = 1}, false);
@@ -324,16 +324,19 @@ void autonomous()
 		doinker.set_value(false);
 		chassis.moveToPoint(52, 3, 2000, {.maxSpeed = 120});
 		chassis.moveToPoint(22, 0, 2000, {.maxSpeed = 120});
-		// chassis.moveToPoint(16.5, -33, 2000, {.forwards = false, .maxSpeed = 80});
-		// clampIn.set_value(false);
-		// clampOut.set_value(true);
-		// pros::delay(500);
-		// chassis.moveToPoint(28.5, -20, 3000, {.forwards = false, .maxSpeed = 80}, false);
-		// clampIn.set_value(true);
-		// clampOut.set_value(false);
-		// conveyor.move_voltage(12000);
-		// intake.move_voltage(-12000);
-		// chassis.moveToPoint(24, -49, 1500, {.maxSpeed = 80});
+
+
+
+		// // chassis.moveToPoint(16.5, -33, 2000, {.forwards = false, .maxSpeed = 80});
+		// // clampIn.set_value(false);
+		// // clampOut.set_value(true);
+		// // pros::delay(500);
+		// // chassis.moveToPoint(28.5, -20, 3000, {.forwards = false, .maxSpeed = 80}, false);
+		// // clampIn.set_value(true);
+		// // clampOut.set_value(false);
+		// // conveyor.move_voltage(12000);
+		// // intake.move_voltage(-12000);
+		// // chassis.moveToPoint(24, -49, 1500, {.maxSpeed = 80});
 		return;
 	case 2: // Blue Side 4 Ring
 		chassis.setPose(62.5, 47.909, 270);
@@ -346,8 +349,6 @@ void autonomous()
 		clampIn.set_value(true);
 		clampOut.set_value(false);
 		pros::delay(50);
-		colorSortToggle = true;
-		sortRed = true;
 		conveyor.move_voltage(12000);
 		intake.move_voltage(-12000);
 		chassis.moveToPoint(25, 55, 2000, defaultMoveParams, false);
@@ -382,10 +383,69 @@ void autonomous()
 		chassis.turnToPoint(36, 64, 2000, defaultTurnParams, false);
 		chassis.moveToPoint(36, 64, 2000, defaultMoveParams);
 		pros::delay(5000);
+		return;
+	case -1: //Red side goal rush
+		chassis.setPose(-54, -61, 90);
+		chassis.moveToPoint(-13.5, -53.5, 1500, {.earlyExitRange = 1});
+		chassis.turnToHeading(50, 100, {.minSpeed = 100, .earlyExitRange = 1}, false);
+		doinker.set_value(true);
+		pros::delay(250);
+		// chassis.turnToHeading(180, 1500, {.direction = AngularDirection::CCW_COUNTERCLOCKWISE, .minSpeed = 100}, false);
+		chassis.moveToPoint(-40, -60, 2000, {.forwards = false, .maxSpeed = 80}, false);
+		doinker.set_value(false);
+		pros::delay(500);
+		chassis.turnToHeading(290, 2000, {.direction = AngularDirection::CCW_COUNTERCLOCKWISE, .maxSpeed = 100});
+		clampIn.set_value(false);
+		clampOut.set_value(true);
+		chassis.moveToPoint(-24, -62.5, 2000, {.forwards = false, .maxSpeed = 80}, false);
+		clampIn.set_value(true);
+		clampOut.set_value(false);
+		pros::delay(250);
+		conveyor.move_voltage(12000);
+		intake.move_voltage(-12000);
+		chassis.moveToPoint(-36, -39.5, 2000, {.maxSpeed = 120}, false);
+		pros::delay(1500);
+		clampIn.set_value(false);
+		clampOut.set_value(true);
+		pros::delay(250);
+		chassis.turnToHeading(180, 2000);
+		chassis.moveToPoint(-24, -15, 2000, {.forwards = false, .maxSpeed = 120}, false);
+		pros::delay(250);
+		clampOut.set_value(false);
+		clampIn.set_value(true);
+		pros::delay(250);
+		chassis.moveToPoint(-46, -9.5, 1000, {.maxSpeed = 120});
+		chassis.turnToHeading(-2, 1000, {}, false);
+		doinker.set_value(true);
+		pros::delay(100);
+		chassis.moveToPoint(-50, -20, 2000, {.forwards = false, .maxSpeed = 120}, false);
+		doinker.set_value(false);
+		chassis.moveToPoint(-52, 3, 2000, {.maxSpeed = 120});
+		chassis.moveToPoint(-22, 0, 2000, {.maxSpeed = 120});
+		return;
+	case -2:
+		chassis.setPose(-62.5, 47.909, 90);
+		chassis.moveToPoint(-48, 48, 2000, defaultMoveParams);
+		clampIn.set_value(false);
+		clampOut.set_value(true);
+		chassis.turnToPoint(-18, 18, 2000, {.forwards = false, .maxSpeed = 80});
+		chassis.moveToPoint(-18, 18, 2000, {.forwards = false, .maxSpeed = 80}, false);
+		pros::delay(50);
+		clampIn.set_value(true);
+		clampOut.set_value(false);
+		pros::delay(50);
+		conveyor.move_voltage(12000);
+		intake.move_voltage(-12000);
+		chassis.moveToPoint(-25, 55, 2000, defaultMoveParams, false);
+		chassis.moveToPoint(-9, 50, 2000, defaultMoveParams, false);
+		chassis.turnToPoint(-7.5, 28, 2000, defaultTurnParams, false);
+		chassis.moveToPoint(-7.5, 28, 2000, defaultMoveParams, false);
+		pros::delay(5000);
+		return;
 	case 5:
 		clampIn.set_value(true);
 		clampOut.set_value(false);
-		colorSortToggle = true;
+		// colorSortToggle = true;
 		// pros::delay(10000);
 		// colorSortTask.suspend();
 	}
@@ -523,11 +583,6 @@ void opcontrol()
 			// {
 			// 	clampOut.set_value(false);
 			// 	clampIn.set_value(true);
-		}
-
-		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_L1))
-		{
-			colorSortToggle = true;
 		}
 
 		if (controller.get_digital_new_press(pros::E_CONTROLLER_DIGITAL_UP))
