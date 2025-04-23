@@ -39,7 +39,7 @@ bool doinkerToggle = false;
 
 bool colorSortToggle = false; // true = on; false = off
 bool colorSorter = false;
-bool sortRed = false; // if true, rejects red rings, else rejects blue
+bool sortRed = true; // if true, rejects red rings, else rejects blue
 
 pros::Rotation verticalSensor(15);												   // Vertical Sensor
 std::vector<float> driveConstants = {6000, 0.17, 0.0005, 1, 2, 75, 0.25, 2000};	   // 1.25
@@ -238,8 +238,8 @@ lemlib::TurnToPointParams defaultTurnParams = {.maxSpeed = 90};
 
 void colorSort()
 {
-	conveyor.move_voltage(12000);
-	intake.move_voltage(-12000);
+	// conveyor.move_voltage(12000);
+	// intake.move_voltage(-12000);
 	/*
 	color sort task running in background,
 	if blue is detected then conveyor will eject ring
@@ -286,7 +286,7 @@ void autonomous()
 
 	switch (LVGL_screen::autonID)
 	{
-	case 1: // Blue Side Goal Rush
+	case 1: // Blue Side Goal
 		chassis.setPose(54, -61, 270);
 		chassis.moveToPoint(13.5, -53.5, 1500, {.earlyExitRange = 1});
 		chassis.turnToHeading(290, 100, {.minSpeed = 100, .earlyExitRange = 1}, false);
@@ -296,30 +296,34 @@ void autonomous()
 		chassis.moveToPoint(34.5, -62, 2000, {.forwards = false, .maxSpeed = 80}, false);
 		doinker.set_value(false);
 		pros::delay(250);
-		chassis.turnToHeading(130, 2000, {.minSpeed = 100});
+		chassis.turnToHeading(130, 2000, {.minSpeed = 120});
 		clampIn.set_value(false);
 		clampOut.set_value(true);
-		chassis.moveToPoint(16, -51, 2000, {.forwards = false, .maxSpeed = 100}, false);
+		chassis.moveToPoint(16, -51, 2000, {.forwards = false, .maxSpeed = 120}, false);
 		clampIn.set_value(true);
 		clampOut.set_value(false);
 		pros::delay(250);
 		conveyor.move_voltage(12000);
 		intake.move_voltage(-12000);
-		chassis.moveToPoint(32, -43.5, 2000, defaultMoveParams, false);
+		chassis.moveToPoint(36, -39.5, 2000, {.maxSpeed = 120}, false);
 		pros::delay(1500);
 		clampIn.set_value(false);
 		clampOut.set_value(true);
 		pros::delay(250);
 		chassis.turnToHeading(180, 2000);
-		chassis.moveToPoint(24, -15, 2000, {.forwards = false, .maxSpeed = 100}, false);
+		chassis.moveToPoint(24, -15, 2000, {.forwards = false, .maxSpeed = 120}, false);
 		pros::delay(250);
-		clampIn.set_value(true);
 		clampOut.set_value(false);
+		clampIn.set_value(true);
 		pros::delay(250);
-		chassis.moveToPoint(42, -13.5, 2000, defaultMoveParams);
-		chassis.turnToHeading(15, 2000);
+		chassis.moveToPoint(46, -9.5, 1000, {.maxSpeed = 120});
+		chassis.turnToHeading(2, 1000, {}, false);
 		doinker.set_value(true);
-		pros::delay(5000);
+		pros::delay(100);
+		chassis.moveToPoint(50, -20, 2000, {.forwards = false, .maxSpeed = 120}, false);
+		doinker.set_value(false);
+		chassis.moveToPoint(52, 3, 2000, {.maxSpeed = 120});
+		chassis.moveToPoint(22, 0, 2000, {.maxSpeed = 120});
 		// chassis.moveToPoint(16.5, -33, 2000, {.forwards = false, .maxSpeed = 80});
 		// clampIn.set_value(false);
 		// clampOut.set_value(true);
@@ -342,6 +346,8 @@ void autonomous()
 		clampIn.set_value(true);
 		clampOut.set_value(false);
 		pros::delay(50);
+		colorSortToggle = true;
+		sortRed = true;
 		conveyor.move_voltage(12000);
 		intake.move_voltage(-12000);
 		chassis.moveToPoint(25, 55, 2000, defaultMoveParams, false);
@@ -489,7 +495,8 @@ void opcontrol()
 		// chassis.arcade(easeInOutExpo(leftY) * util::sgn(leftY) * 127, easeInOutExpo(rightX) * util::sgn(rightX) * 127, false, 0.75);
 		chassis.tank(leftY, rightY, true);
 
-		if (controller.get_digital_new_press(E_CONTROLLER_DIGITAL_Y)){
+		if (controller.get_digital_new_press(E_CONTROLLER_DIGITAL_Y))
+		{
 			climbToggle = !climbToggle;
 			climb1.set_value(climbToggle);
 			climb2.set_value(climbToggle);
