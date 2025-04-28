@@ -423,7 +423,7 @@ void autonomous()
 		chassis.moveToPoint(-52, 3, 2000, {.maxSpeed = 120});
 		chassis.moveToPoint(-22, 0, 2000, {.maxSpeed = 120});
 		return;
-	case -2:
+	case -2: // 4 Ring
 		chassis.setPose(-62.5, 47.909, 90);
 		chassis.moveToPoint(-48, 48, 2000, defaultMoveParams);
 		clampIn.set_value(false);
@@ -442,6 +442,32 @@ void autonomous()
 		chassis.moveToPoint(-7.5, 28, 2000, defaultMoveParams, false);
 		pros::delay(5000);
 		return;
+	case -3: // 4 Ring + Positive Corner Sweep
+		chassis.setPose(-62.5, 47.909, 90);
+		chassis.moveToPoint(-48, 48, 2000, defaultMoveParams);
+		clampIn.set_value(false);
+		clampOut.set_value(true);
+		chassis.turnToPoint(-18, 18, 2000, {.forwards = false, .maxSpeed = 80});
+		chassis.moveToPoint(-18, 18, 2000, {.forwards = false, .maxSpeed = 80}, false);
+		pros::delay(50);
+		clampIn.set_value(true);
+		clampOut.set_value(false);
+		pros::delay(50);
+		conveyor.move_voltage(12000);
+		intake.move_voltage(-12000);
+		chassis.moveToPoint(-25, 51.5, 2000, defaultMoveParams, false);
+		chassis.moveToPoint(-7, 55, 2000, defaultMoveParams, false);
+		chassis.turnToPoint(-7, 32, 2000, defaultTurnParams, false);
+		chassis.moveToPoint(-11, 24, 2000, defaultMoveParams, false);
+		chassis.moveToPoint(-52, 52, 2000, defaultMoveParams, false);
+		doinker.set_value(true);
+		pros::delay(500);
+		chassis.turnToHeading(90, 2000, {.direction = AngularDirection::CCW_COUNTERCLOCKWISE, .maxSpeed = 80}, false);
+		doinker.set_value(false);
+		pros::delay(500);
+		chassis.turnToPoint(-62, 64, 2000, defaultTurnParams, false);
+		chassis.moveToPoint(-62, 64, 2000, defaultMoveParams);
+		pros::delay(5000);
 	case 5:
 		clampIn.set_value(true);
 		clampOut.set_value(false);
